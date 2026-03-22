@@ -28,7 +28,7 @@ export default function PaywallOverlay({
     if (!user) {
       // Redirect to login with return URL
       const returnUrl = encodeURIComponent(window.location.href);
-      window.location.href = `/signin?redirect=${returnUrl}`;
+      window.location.href = `/auth/login?redirect=${returnUrl}`;
       return;
     }
 
@@ -123,7 +123,7 @@ export default function PaywallOverlay({
               )}
             </button>
             <a
-              href="/signin"
+              href="/auth/login"
               className="block text-sm text-white/50 hover:text-white/80 transition-colors"
             >
               Sign in if you&apos;ve already paid

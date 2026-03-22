@@ -106,14 +106,36 @@ export default function LandingPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-base-100 via-base-100 to-primary/5">
+        <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-950 to-black text-white">
+          {/* Animated CSS spine/brain illustration */}
+          <div className="absolute inset-0 -z-10 overflow-hidden opacity-20">
+            <svg
+              viewBox="0 0 800 600"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[700px]"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="0.5"
+            >
+              {/* Stylized brain outline */}
+              <ellipse cx="400" cy="220" rx="140" ry="120" className="animate-pulse" style={{ animationDuration: "4s" }} />
+              <ellipse cx="360" cy="210" rx="80" ry="90" opacity="0.6" />
+              <ellipse cx="440" cy="210" rx="80" ry="90" opacity="0.6" />
+              {/* Spine */}
+              <path d="M400 340 Q395 380 400 420 Q405 460 400 500 Q395 540 400 580" strokeWidth="2" className="animate-pulse" style={{ animationDuration: "3s" }} />
+              {/* Vertebrae */}
+              {[360, 400, 440, 480, 520, 560].map((y) => (
+                <ellipse key={y} cx="400" cy={y} rx="20" ry="8" opacity="0.4" className="animate-pulse" style={{ animationDuration: `${3 + (y % 3)}s` }} />
+              ))}
+            </svg>
+          </div>
+
           <div className="max-w-7xl mx-auto px-8 py-20 md:py-32">
             <div className="text-center max-w-3xl mx-auto space-y-6">
               <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
                 Your MRI.{" "}
-                <span className="text-primary">Understood.</span>
+                <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Understood.</span>
               </h1>
-              <p className="text-lg md:text-xl text-base-content/70 max-w-2xl mx-auto">
+              <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">
                 Upload your MRI scan and get an AI-powered analysis with
                 findings highlighted &mdash; in minutes, not weeks.
               </p>
@@ -160,10 +182,23 @@ export default function LandingPage() {
                   />
                 </div>
               ) : (
-                <UploadZone
-                  onFilesLoaded={handleFilesLoaded}
-                  isLoading={isAnalysing}
-                />
+                <>
+                  <UploadZone
+                    onFilesLoaded={handleFilesLoaded}
+                    isLoading={isAnalysing}
+                  />
+                  <p className="text-center mt-4">
+                    <button
+                      className="text-sm text-gray-400 hover:text-white underline underline-offset-4 transition-colors"
+                      onClick={() => {
+                        // TODO: Load a bundled demo DICOM scan
+                        alert("Demo scan coming soon! Upload your own .dcm files for now.");
+                      }}
+                    >
+                      Or try a demo scan
+                    </button>
+                  </p>
+                </>
               )}
             </div>
           </div>
@@ -174,14 +209,14 @@ export default function LandingPage() {
               className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full opacity-10"
               style={{
                 background:
-                  "radial-gradient(circle, var(--color-primary) 0%, transparent 70%)",
+                  "radial-gradient(circle, rgba(87, 13, 248, 0.8) 0%, transparent 70%)",
               }}
             />
             <div
               className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full opacity-5"
               style={{
                 background:
-                  "radial-gradient(circle, var(--color-primary) 0%, transparent 70%)",
+                  "radial-gradient(circle, rgba(87, 13, 248, 0.6) 0%, transparent 70%)",
               }}
             />
           </div>

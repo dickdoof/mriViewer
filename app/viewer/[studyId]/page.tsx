@@ -22,7 +22,7 @@ export default async function ViewerPage({ params }: ViewerPageProps) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/signin?redirect=/viewer/${studyId}`);
+    redirect(`/auth/login?redirect=/viewer/${studyId}`);
   }
 
   // Fetch study (RLS enforces ownership)

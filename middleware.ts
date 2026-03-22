@@ -3,7 +3,7 @@ import { updateSession } from "@/libs/supabase/middleware";
 import { createServerClient } from "@supabase/ssr";
 
 const PROTECTED_ROUTES = ["/dashboard", "/viewer"];
-const LOGIN_URL = "/signin";
+const LOGIN_URL = "/auth/login";
 
 export async function middleware(request: NextRequest) {
   // First, refresh the session

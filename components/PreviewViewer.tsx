@@ -60,7 +60,7 @@ export default function PreviewViewer({
                   backgroundColor: severityColor.replace("0.5", "0.15"),
                   borderRadius: "4px",
                 }}
-                title="Unlock to see details"
+                title="&#128274; Unlock to see details"
               />
             );
           })}

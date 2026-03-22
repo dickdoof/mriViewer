@@ -48,7 +48,7 @@ const config = {
     main: "#570df8",
   },
   auth: {
-    loginUrl: "/signin",
+    loginUrl: "/auth/login",
     callbackUrl: "/dashboard",
   },
 } as ConfigProps;
