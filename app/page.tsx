@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import UploadZone from "@/components/UploadZone";
@@ -30,12 +29,8 @@ export default function LandingPage() {
     setDicomFiles(files);
 
     try {
-      // Pick the middle slice
       const middleIndex = Math.floor(files.length / 2);
       const middleFile = files[middleIndex];
-
-      // Convert DICOM to PNG using canvas
-      // For now, render raw pixel data as grayscale image
       const imageBase64 = await dicomToBase64(middleFile.arrayBuffer);
 
       if (!imageBase64) {
@@ -46,7 +41,6 @@ export default function LandingPage() {
 
       setPreviewImage(`data:image/png;base64,${imageBase64}`);
 
-      // Send to annotation API
       const response = await fetch("/api/annotate/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -67,9 +61,6 @@ export default function LandingPage() {
   const handleCheckout = async () => {
     setIsCheckoutLoading(true);
     try {
-      // Store DICOM files in sessionStorage keys for post-payment upload
-      // Note: sessionStorage has ~5MB limit, so we store file metadata
-      // and keep ArrayBuffers in memory via the React state
       const tempStudyId = crypto.randomUUID();
       sessionStorage.setItem(
         "pendingStudy",
@@ -97,7 +88,6 @@ export default function LandingPage() {
     }
   };
 
-  // Regions count from findings
   const regions = new Set(findings.map((f) => f.label.split(" ")[0]));
 
   return (
@@ -105,37 +95,49 @@ export default function LandingPage() {
       <Header />
 
       <main>
-        {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-950 to-black text-white">
+        {/* ══ HERO SECTION ══ */}
+        <section className="relative overflow-hidden bg-[var(--color-surface)]">
           {/* Animated CSS spine/brain illustration */}
-          <div className="absolute inset-0 -z-10 overflow-hidden opacity-20">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <svg
               viewBox="0 0 800 600"
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[700px]"
               fill="none"
-              stroke="currentColor"
+              stroke="var(--color-rm-primary)"
               strokeWidth="0.5"
+              style={{ opacity: 0.06 }}
             >
-              {/* Stylized brain outline */}
-              <ellipse cx="400" cy="220" rx="140" ry="120" className="animate-pulse" style={{ animationDuration: "4s" }} />
+              <ellipse cx="400" cy="220" rx="140" ry="120" className="animate-[surface-breathe_4s_ease-in-out_infinite]" />
               <ellipse cx="360" cy="210" rx="80" ry="90" opacity="0.6" />
               <ellipse cx="440" cy="210" rx="80" ry="90" opacity="0.6" />
-              {/* Spine */}
-              <path d="M400 340 Q395 380 400 420 Q405 460 400 500 Q395 540 400 580" strokeWidth="2" className="animate-pulse" style={{ animationDuration: "3s" }} />
-              {/* Vertebrae */}
+              <path d="M400 340 Q395 380 400 420 Q405 460 400 500 Q395 540 400 580" strokeWidth="2" className="animate-[surface-breathe_3s_ease-in-out_infinite]" />
               {[360, 400, 440, 480, 520, 560].map((y) => (
-                <ellipse key={y} cx="400" cy={y} rx="20" ry="8" opacity="0.4" className="animate-pulse" style={{ animationDuration: `${3 + (y % 3)}s` }} />
+                <ellipse key={y} cx="400" cy={y} rx="20" ry="8" opacity="0.4" className="animate-[surface-breathe_3s_ease-in-out_infinite]" />
               ))}
             </svg>
+            {/* Ambient primary glow — top right */}
+            <div
+              className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full"
+              style={{
+                background: "radial-gradient(circle, rgba(77, 142, 255, 0.08) 0%, transparent 70%)",
+              }}
+            />
+            {/* Ambient glow — bottom left */}
+            <div
+              className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full"
+              style={{
+                background: "radial-gradient(circle, rgba(173, 198, 255, 0.04) 0%, transparent 70%)",
+              }}
+            />
           </div>
 
-          <div className="max-w-7xl mx-auto px-8 py-20 md:py-32">
+          <div className="relative max-w-7xl mx-auto px-8 py-20 md:py-32">
             <div className="text-center max-w-3xl mx-auto space-y-6">
-              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
+              <h1 className="headline-lg text-4xl md:text-6xl">
                 Your MRI.{" "}
-                <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Understood.</span>
+                <span className="gradient-text-primary">Understood.</span>
               </h1>
-              <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">
+              <p className="text-lg md:text-xl text-[var(--color-rm-on-surface-dim)] max-w-2xl mx-auto" style={{ lineHeight: 1.6 }}>
                 Upload your MRI scan and get an AI-powered analysis with
                 findings highlighted &mdash; in minutes, not weeks.
               </p>
@@ -143,7 +145,7 @@ export default function LandingPage() {
               {!previewImage && (
                 <a
                   href="#upload"
-                  className="btn btn-primary btn-lg inline-flex"
+                  className="btn btn-primary btn-lg inline-flex gap-2"
                 >
                   Analyse My MRI Free
                   <svg
@@ -165,7 +167,7 @@ export default function LandingPage() {
             </div>
 
             {/* Upload Widget / Preview */}
-            <div id="upload" className="mt-16 max-w-2xl mx-auto">
+            <div id="upload" className="mt-20 max-w-2xl mx-auto">
               {previewImage ? (
                 <div className="relative">
                   <PreviewViewer
@@ -189,9 +191,8 @@ export default function LandingPage() {
                   />
                   <p className="text-center mt-4">
                     <button
-                      className="text-sm text-gray-400 hover:text-white underline underline-offset-4 transition-colors"
+                      className="label-sm hover:text-[var(--color-rm-primary)] transition-colors"
                       onClick={() => {
-                        // TODO: Load a bundled demo DICOM scan
                         alert("Demo scan coming soon! Upload your own .dcm files for now.");
                       }}
                     >
@@ -202,38 +203,23 @@ export default function LandingPage() {
               )}
             </div>
           </div>
-
-          {/* Decorative background gradient */}
-          <div className="absolute inset-0 -z-10 overflow-hidden">
-            <div
-              className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full opacity-10"
-              style={{
-                background:
-                  "radial-gradient(circle, rgba(87, 13, 248, 0.8) 0%, transparent 70%)",
-              }}
-            />
-            <div
-              className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full opacity-5"
-              style={{
-                background:
-                  "radial-gradient(circle, rgba(87, 13, 248, 0.6) 0%, transparent 70%)",
-              }}
-            />
-          </div>
         </section>
 
-        {/* How It Works */}
-        <section className="py-20 bg-base-200">
+        {/* ══ HOW IT WORKS ══ */}
+        <section className="py-24 bg-[var(--color-surface-low)]">
           <div className="max-w-5xl mx-auto px-8">
-            <h2 className="text-3xl font-extrabold text-center mb-16">
+            <h2 className="headline-lg text-3xl text-center mb-4">
               How It Works
             </h2>
-            <div className="grid md:grid-cols-3 gap-8">
+            <p className="text-center text-[var(--color-rm-on-surface-dim)] mb-16 max-w-lg mx-auto">
+              Three steps from upload to a complete diagnostic report.
+            </p>
+            <div className="grid md:grid-cols-3 gap-6">
               {[
                 {
-                  step: "1",
+                  step: "01",
                   icon: (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
                     </svg>
                   ),
@@ -241,9 +227,9 @@ export default function LandingPage() {
                   desc: "Drag in your DICOM files from your CD or USB drive.",
                 },
                 {
-                  step: "2",
+                  step: "02",
                   icon: (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                       <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                     </svg>
                   ),
@@ -251,9 +237,9 @@ export default function LandingPage() {
                   desc: "Our AI reviews every slice and flags anomalies with severity ratings.",
                 },
                 {
-                  step: "3",
+                  step: "03",
                   icon: (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                     </svg>
                   ),
@@ -263,55 +249,67 @@ export default function LandingPage() {
               ].map((item) => (
                 <div
                   key={item.step}
-                  className="text-center space-y-4 p-6 rounded-xl bg-base-100 shadow-sm"
+                  className="relative p-6 rounded-sm bg-[var(--color-surface)] ghost-border tonal-shift group"
                 >
-                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
+                  {/* Step number — Space Grotesk, faint */}
+                  <span className="absolute top-4 right-4 font-[family-name:var(--font-space-grotesk)] text-[var(--color-rm-on-surface-faint)] text-xs font-bold tracking-widest">
+                    {item.step}
+                  </span>
+                  <div className="w-12 h-12 rounded-sm bg-[var(--color-surface-high)] flex items-center justify-center text-[var(--color-rm-primary)] mb-5">
                     {item.icon}
                   </div>
-                  <h3 className="text-xl font-bold">{item.title}</h3>
-                  <p className="text-base-content/70">{item.desc}</p>
+                  <h3 className="title-sm text-lg font-bold mb-2">{item.title}</h3>
+                  <p className="text-sm text-[var(--color-rm-on-surface-dim)]" style={{ lineHeight: 1.6 }}>{item.desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Pricing */}
-        <section id="pricing" className="py-20">
+        {/* ══ PRICING ══ */}
+        <section id="pricing" className="py-24 bg-[var(--color-surface)]">
           <div className="max-w-lg mx-auto px-8">
-            <h2 className="text-3xl font-extrabold text-center mb-4">
+            <h2 className="headline-lg text-3xl text-center mb-4">
               Simple Pricing
             </h2>
-            <p className="text-center text-base-content/60 mb-12">
+            <p className="text-center text-[var(--color-rm-on-surface-dim)] mb-12">
               One-time payment per study. No subscriptions.
             </p>
 
-            <div className="card bg-base-100 shadow-xl border border-primary/20">
-              <div className="card-body items-center text-center space-y-4">
-                <div className="badge badge-primary badge-lg">Most Popular</div>
-                <h3 className="text-2xl font-bold">Full MRI Analysis</h3>
-                <p className="text-5xl font-extrabold">
-                  $29
-                  <span className="text-lg font-normal text-base-content/60">
-                    {" "}
-                    / study
-                  </span>
+            <div className="relative p-8 rounded-sm bg-[var(--color-surface-low)] ghost-border">
+              {/* Ambient glow behind the card */}
+              <div
+                className="absolute -inset-1 rounded-sm -z-10"
+                style={{
+                  background: "radial-gradient(ellipse at center, rgba(77, 142, 255, 0.08) 0%, transparent 70%)",
+                }}
+              />
+
+              <div className="text-center space-y-6">
+                <span className="severity-badge bg-[var(--color-rm-primary-container)] text-white">
+                  Most Popular
+                </span>
+                <h3 className="title-sm text-xl font-bold">Full MRI Analysis</h3>
+                <p>
+                  <span className="text-5xl font-extrabold text-[var(--color-rm-on-surface)] font-[family-name:var(--font-space-grotesk)]">$29</span>
+                  <span className="text-sm text-[var(--color-rm-on-surface-faint)] ml-2">/ study</span>
                 </p>
-                <ul className="text-left space-y-2 w-full">
+
+                <ul className="text-left space-y-3 max-w-xs mx-auto">
                   {[
                     "Full resolution DICOM viewer",
                     "All findings with severity ratings",
                     "Slice-by-slice navigation",
                     "Brightness & contrast controls",
-                    "Doctor's letter PDF download",
+                    "Doctor\u2019s letter PDF download",
                     "Permanent secure storage",
                   ].map((feature) => (
-                    <li key={feature} className="flex items-center gap-3">
+                    <li key={feature} className="flex items-center gap-3 text-sm text-[var(--color-rm-on-surface-dim)]">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 20 20"
                         fill="currentColor"
-                        className="w-5 h-5 text-primary shrink-0"
+                        className="w-4 h-4 text-[var(--color-rm-primary)] shrink-0"
                       >
                         <path
                           fillRule="evenodd"
@@ -323,6 +321,7 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
+
                 <a href="#upload" className="btn btn-primary btn-block btn-lg mt-4">
                   Unlock Full Analysis
                 </a>
@@ -331,19 +330,19 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Trust Section */}
-        <section className="py-16 bg-base-200">
+        {/* ══ TRUST SECTION ══ */}
+        <section className="py-20 bg-[var(--color-surface-low)]">
           <div className="max-w-3xl mx-auto px-8 text-center space-y-6">
             <div className="flex items-center justify-center gap-3">
-              <div className="badge badge-outline badge-lg">
+              <span className="label-md px-4 py-1.5 rounded-sm bg-[var(--color-surface-high)] text-[var(--color-rm-primary)] ghost-border">
                 Powered by Claude AI
-              </div>
+              </span>
             </div>
-            <p className="text-base-content/70 max-w-xl mx-auto">
+            <p className="text-[var(--color-rm-on-surface-dim)] max-w-xl mx-auto" style={{ lineHeight: 1.7 }}>
               Free-tier scans are processed in memory only &mdash; nothing is
               stored on our servers. Your privacy is our priority.
             </p>
-            <p className="text-sm text-base-content/50 max-w-xl mx-auto">
+            <p className="text-xs text-[var(--color-rm-on-surface-faint)] max-w-xl mx-auto">
               For informational purposes only. Not a substitute for professional
               medical advice. Always consult a qualified medical professional for
               diagnosis and treatment.
@@ -359,11 +358,9 @@ export default function LandingPage() {
 
 /**
  * Convert DICOM ArrayBuffer to base64 PNG.
- * Uses a simplified approach: extracts pixel data and renders to canvas.
  */
 async function dicomToBase64(buffer: ArrayBuffer): Promise<string | null> {
   try {
-    // Dynamic import dcmjs for client-side parsing
     const dcmjs = await import("dcmjs");
     const dicomData = dcmjs.data.DicomMessage.readFile(buffer);
     const dataset = dcmjs.data.DicomMetaDictionary.naturalizeDataset(
@@ -383,11 +380,9 @@ async function dicomToBase64(buffer: ArrayBuffer): Promise<string | null> {
       ? dataset.WindowWidth[0]
       : dataset.WindowWidth || 256;
 
-    // Get pixel data
     const pixelDataElement = dataset.PixelData;
     if (!pixelDataElement) return null;
 
-    // Handle both raw and encapsulated pixel data
     let rawPixels: ArrayBuffer;
     if (Array.isArray(pixelDataElement)) {
       rawPixels = pixelDataElement[0];
@@ -397,7 +392,6 @@ async function dicomToBase64(buffer: ArrayBuffer): Promise<string | null> {
       return null;
     }
 
-    // Create typed array based on bits allocated
     let pixelArray: Int16Array | Uint16Array | Uint8Array;
     if (bitsAllocated === 16) {
       pixelArray =
@@ -408,7 +402,6 @@ async function dicomToBase64(buffer: ArrayBuffer): Promise<string | null> {
       pixelArray = new Uint8Array(rawPixels);
     }
 
-    // Apply rescale and window/level
     const canvas = document.createElement("canvas");
     canvas.width = cols;
     canvas.height = rows;
@@ -440,9 +433,8 @@ async function dicomToBase64(buffer: ArrayBuffer): Promise<string | null> {
 
     ctx.putImageData(imageData, 0, 0);
 
-    // Convert canvas to base64 PNG
     const dataUrl = canvas.toDataURL("image/png");
-    return dataUrl.split(",")[1]; // Remove "data:image/png;base64," prefix
+    return dataUrl.split(",")[1];
   } catch (err) {
     console.error("DICOM parsing error:", err);
     return null;

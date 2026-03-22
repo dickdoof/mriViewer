@@ -26,7 +26,6 @@ export default function PaywallOverlay({
     } = await supabase.auth.getUser();
 
     if (!user) {
-      // Redirect to login with return URL
       const returnUrl = encodeURIComponent(window.location.href);
       window.location.href = `/auth/login?redirect=${returnUrl}`;
       return;
@@ -38,93 +37,93 @@ export default function PaywallOverlay({
 
   return (
     <div className="absolute inset-0 flex items-center justify-center z-20">
+      {/* Glassmorphism card — per design system spec */}
       <div
-        className="relative max-w-lg w-full mx-4 p-8 rounded-2xl shadow-2xl"
+        className="glass-panel-deep relative max-w-lg w-full mx-4 p-8"
         style={{
-          background: "rgba(0, 0, 0, 0.60)",
-          backdropFilter: "blur(24px)",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
+          outline: "1px solid rgba(66, 71, 84, 0.15)",
         }}
       >
-        <div className="text-center text-white space-y-6">
+        <div className="text-center space-y-6">
           {/* Title */}
           <div>
-            <p className="text-3xl mb-2">Full MRI Analysis Ready</p>
-            <p className="text-white/70">
-              {findingCount} finding{findingCount !== 1 ? "s" : ""} detected
-              {regionCount > 0 &&
-                ` across ${regionCount} region${regionCount !== 1 ? "s" : ""}`}
+            <h2 className="headline-lg text-2xl mb-2">
+              Full MRI Analysis Ready
+            </h2>
+            <p className="text-[var(--color-rm-on-surface-dim)]">
+              <span className="value-readout text-[var(--color-rm-tertiary)]">{findingCount}</span>
+              {" "}finding{findingCount !== 1 ? "s" : ""} detected
+              {regionCount > 0 && (
+                <>
+                  {" "}across{" "}
+                  <span className="value-readout text-[var(--color-rm-tertiary)]">{regionCount}</span>
+                  {" "}region{regionCount !== 1 ? "s" : ""}
+                </>
+              )}
               .
             </p>
           </div>
 
-          {/* Feature comparison */}
-          <div className="grid grid-cols-2 gap-4 text-sm text-left">
+          {/* Feature comparison — two-column, no dividers */}
+          <div className="grid grid-cols-2 gap-6 text-left">
             <div>
-              <p className="font-semibold text-white/90 mb-2">Free</p>
-              <ul className="space-y-1.5 text-white/60">
+              <p className="label-md mb-3">Free</p>
+              <ul className="space-y-2 text-sm text-[var(--color-rm-on-surface-dim)]">
                 <li className="flex items-center gap-2">
-                  <span className="text-green-400">&#10003;</span> Upload &
-                  preview
+                  <span className="text-[var(--color-severity-normal)]">&#10003;</span> Upload & preview
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-400">&#10003;</span> Finding count
+                  <span className="text-[var(--color-severity-normal)]">&#10003;</span> Finding count
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-400">&#10003;</span> Blurred
-                  preview
+                  <span className="text-[var(--color-severity-normal)]">&#10003;</span> Blurred preview
                 </li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-white/90 mb-2">Paid</p>
-              <ul className="space-y-1.5 text-white/60">
+              <p className="label-md mb-3 text-[var(--color-rm-primary)]">Paid</p>
+              <ul className="space-y-2 text-sm text-[var(--color-rm-on-surface-dim)]">
                 <li className="flex items-center gap-2">
-                  <span className="text-green-400">&#10003;</span> Full
-                  resolution viewer
+                  <span className="text-[var(--color-rm-primary)]">&#10003;</span> Full resolution viewer
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-400">&#10003;</span> All findings
-                  + severity
+                  <span className="text-[var(--color-rm-primary)]">&#10003;</span> All findings + severity
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-400">&#10003;</span> Slice-by-slice
-                  navigation
+                  <span className="text-[var(--color-rm-primary)]">&#10003;</span> Slice-by-slice navigation
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-400">&#10003;</span> Doctor&apos;s
-                  letter PDF
+                  <span className="text-[var(--color-rm-primary)]">&#10003;</span> Doctor&apos;s letter PDF
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-400">&#10003;</span> Permanent
-                  secure storage
+                  <span className="text-[var(--color-rm-primary)]">&#10003;</span> Permanent secure storage
                 </li>
               </ul>
             </div>
           </div>
 
-          {/* Price */}
-          <p className="text-lg text-white/80">
-            <span className="text-2xl font-bold text-white">$29</span>{" "}
-            &mdash; one-time, per study
+          {/* Price — Space Grotesk readout */}
+          <p className="text-[var(--color-rm-on-surface-dim)]">
+            <span className="text-3xl font-extrabold text-[var(--color-rm-on-surface)] font-[family-name:var(--font-space-grotesk)]">$29</span>
+            <span className="ml-2 label-sm">&mdash; one-time, per study</span>
           </p>
 
-          {/* CTAs */}
+          {/* CTAs — Primary gradient button */}
           <div className="space-y-3">
             <button
               onClick={handleUnlock}
               disabled={isCheckoutLoading || checkingAuth}
-              className="btn btn-primary btn-block text-lg"
+              className="btn btn-primary btn-block text-base"
             >
               {isCheckoutLoading || checkingAuth ? (
                 <span className="loading loading-spinner loading-sm"></span>
               ) : (
-                "Unlock Full Report — $29"
+                "Unlock Full Report \u2014 $29"
               )}
             </button>
             <a
               href="/auth/login"
-              className="block text-sm text-white/50 hover:text-white/80 transition-colors"
+              className="block label-sm hover:text-[var(--color-rm-primary)] transition-colors"
             >
               Sign in if you&apos;ve already paid
             </a>

@@ -23,7 +23,6 @@ export default function UploadZone({ onFilesLoaded, isLoading }: UploadZoneProps
         (f) =>
           f.name.toLowerCase().endsWith(".dcm") ||
           f.name.toLowerCase().endsWith(".dicom") ||
-          // DICOM files sometimes have no extension
           (!f.name.includes(".") && f.size > 1000)
       );
 
@@ -47,7 +46,6 @@ export default function UploadZone({ onFilesLoaded, isLoading }: UploadZoneProps
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragging(false);
-
       if (e.dataTransfer.files.length > 0) {
         processFiles(e.dataTransfer.files);
       }
@@ -76,11 +74,20 @@ export default function UploadZone({ onFilesLoaded, isLoading }: UploadZoneProps
 
   return (
     <div
-      className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all cursor-pointer ${
-        isDragging
-          ? "border-primary bg-primary/5 scale-[1.02]"
-          : "border-base-content/20 hover:border-primary/50 hover:bg-base-200/50"
-      } ${isLoading ? "pointer-events-none opacity-60" : ""}`}
+      className={`
+        relative p-12 text-center cursor-pointer transition-all rounded-sm
+        ${isDragging
+          ? "bg-[var(--color-surface-high)] scale-[1.01]"
+          : "bg-[var(--color-surface-low)] hover:bg-[var(--color-surface-high)]"
+        }
+        ${isLoading ? "pointer-events-none opacity-60" : ""}
+      `}
+      style={{
+        outline: isDragging
+          ? "1px solid rgba(173, 198, 255, 0.3)"
+          : "1px solid rgba(66, 71, 84, 0.15)",
+        transition: "all 0.2s ease",
+      }}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -97,24 +104,24 @@ export default function UploadZone({ onFilesLoaded, isLoading }: UploadZoneProps
 
       {isLoading ? (
         <div className="flex flex-col items-center gap-4">
-          <span className="loading loading-spinner loading-lg text-primary"></span>
-          <p className="text-lg font-semibold">
-            Analysing {fileCount} slice{fileCount !== 1 ? "s" : ""}...
+          <span className="loading loading-spinner loading-lg text-[var(--color-rm-primary)]"></span>
+          <p className="title-sm text-lg font-bold">
+            Analysing <span className="value-readout">{fileCount}</span> slice{fileCount !== 1 ? "s" : ""}...
           </p>
-          <p className="text-sm text-base-content/60">
+          <p className="label-sm">
             This may take a moment
           </p>
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-5">
+          <div className="w-14 h-14 rounded-sm bg-[var(--color-surface-high)] flex items-center justify-center text-[var(--color-rm-primary)]">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className="w-8 h-8 text-primary"
+              className="w-7 h-7"
             >
               <path
                 strokeLinecap="round"
@@ -124,11 +131,11 @@ export default function UploadZone({ onFilesLoaded, isLoading }: UploadZoneProps
             </svg>
           </div>
           <div>
-            <p className="text-lg font-semibold">
+            <p className="title-sm text-lg font-bold text-[var(--color-rm-on-surface)]">
               Drop your DICOM files here
             </p>
-            <p className="text-sm text-base-content/60 mt-1">
-              or click to browse — .dcm files from your CD or USB
+            <p className="label-sm mt-2">
+              or click to browse &mdash; .dcm files from your CD or USB
             </p>
           </div>
         </div>

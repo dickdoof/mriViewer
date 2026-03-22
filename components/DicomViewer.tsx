@@ -29,7 +29,6 @@ export default function DicomViewer({ slices, allFindings }: DicomViewerProps) {
 
   const currentUrl = slices[currentSlice]?.url;
 
-  // Load and render the current DICOM slice image
   useEffect(() => {
     if (!currentUrl) return;
     setImageLoaded(false);
@@ -53,7 +52,6 @@ export default function DicomViewer({ slices, allFindings }: DicomViewerProps) {
     img.src = currentUrl;
   }, [currentUrl, brightness, contrast]);
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
@@ -67,7 +65,6 @@ export default function DicomViewer({ slices, allFindings }: DicomViewerProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [slices.length]);
 
-  // Mouse wheel zoom
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     setZoom((z) => Math.max(0.5, Math.min(4, z + (e.deltaY > 0 ? -0.1 : 0.1))));
@@ -75,10 +72,10 @@ export default function DicomViewer({ slices, allFindings }: DicomViewerProps) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Toolbar */}
-      <div className="flex items-center gap-4 p-3 bg-base-200 rounded-t-xl border-b border-base-content/10">
-        <div className="flex items-center gap-2 text-sm">
-          <label className="text-base-content/60">Brightness</label>
+      {/* Toolbar — surface-high, no border lines, tonal separation */}
+      <div className="flex items-center gap-5 p-3 bg-[var(--color-surface-high)] rounded-t-sm">
+        <div className="flex items-center gap-2">
+          <label className="label-md text-[0.625rem]">Brightness</label>
           <input
             type="range"
             min="0"
@@ -88,8 +85,8 @@ export default function DicomViewer({ slices, allFindings }: DicomViewerProps) {
             className="range range-xs range-primary w-24"
           />
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          <label className="text-base-content/60">Contrast</label>
+        <div className="flex items-center gap-2">
+          <label className="label-md text-[0.625rem]">Contrast</label>
           <input
             type="range"
             min="0"
@@ -99,19 +96,21 @@ export default function DicomViewer({ slices, allFindings }: DicomViewerProps) {
             className="range range-xs range-primary w-24"
           />
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          <label className="text-base-content/60">Zoom</label>
-          <span className="font-mono">{(zoom * 100).toFixed(0)}%</span>
+        <div className="flex items-center gap-2">
+          <label className="label-md text-[0.625rem]">Zoom</label>
+          <span className="value-readout text-xs">{(zoom * 100).toFixed(0)}%</span>
         </div>
-        <div className="ml-auto text-sm text-base-content/60">
-          Slice {currentSlice + 1} / {slices.length}
+        <div className="ml-auto">
+          <span className="label-sm">Slice </span>
+          <span className="value-readout text-xs">{currentSlice + 1}</span>
+          <span className="label-sm"> / {slices.length}</span>
         </div>
       </div>
 
-      {/* Viewer */}
+      {/* Viewport — Deep Void (surface-container-lowest) with Ghost Border */}
       <div
         ref={containerRef}
-        className="relative flex-1 overflow-hidden bg-black flex items-center justify-center"
+        className="relative flex-1 overflow-hidden viewport-void flex items-center justify-center"
         onWheel={handleWheel}
       >
         <div
@@ -137,14 +136,14 @@ export default function DicomViewer({ slices, allFindings }: DicomViewerProps) {
 
         {!imageLoaded && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="loading loading-spinner loading-lg text-primary"></span>
+            <span className="loading loading-spinner loading-lg text-[var(--color-rm-primary)]"></span>
           </div>
         )}
       </div>
 
-      {/* Slice slider */}
+      {/* Slice slider — surface-high bottom bar */}
       {slices.length > 1 && (
-        <div className="p-3 bg-base-200 rounded-b-xl border-t border-base-content/10">
+        <div className="p-3 bg-[var(--color-surface-high)] rounded-b-sm">
           <input
             type="range"
             min="0"

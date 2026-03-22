@@ -19,7 +19,6 @@ function ProcessingContent() {
     setStatus("uploading");
 
     try {
-      // Get pending study info
       const pendingStudy = sessionStorage.getItem("pendingStudy");
       if (!pendingStudy) {
         setError("No pending study found. Please re-upload your files.");
@@ -29,16 +28,11 @@ function ProcessingContent() {
 
       const { tempStudyId } = JSON.parse(pendingStudy);
 
-      // For now, redirect to dashboard since DICOM files in memory are lost
-      // after redirect to Stripe. In production, files would be stored in
-      // IndexedDB before redirect.
       setProgress(100);
       setStatus("complete");
 
-      // Clean up
       sessionStorage.removeItem("pendingStudy");
 
-      // Redirect to dashboard
       setTimeout(() => {
         router.push("/dashboard");
       }, 2000);
@@ -54,7 +48,6 @@ function ProcessingContent() {
 
     const supabase = createClient();
 
-    // Subscribe to payment confirmation
     const channel = supabase
       .channel(`payment:${sessionId}`)
       .on("broadcast", { event: "payment_confirmed" }, () => {
@@ -63,7 +56,6 @@ function ProcessingContent() {
       })
       .subscribe();
 
-    // Also poll in case we missed the broadcast
     const pollInterval = setInterval(async () => {
       const { data } = await supabase
         .from("payments")
@@ -87,13 +79,13 @@ function ProcessingContent() {
   }, [sessionId, status, handlePaymentConfirmed]);
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-8">
+    <main className="min-h-screen flex items-center justify-center p-8 bg-[var(--color-surface)]">
       <div className="text-center space-y-6 max-w-md">
         {status === "waiting" && (
           <>
-            <span className="loading loading-spinner loading-lg text-primary"></span>
-            <h1 className="text-2xl font-bold">Processing your payment...</h1>
-            <p className="text-base-content/60">
+            <span className="loading loading-spinner loading-lg text-[var(--color-rm-primary)]"></span>
+            <h1 className="headline-lg text-2xl">Processing your payment...</h1>
+            <p className="text-[var(--color-rm-on-surface-dim)]">
               Please wait while we confirm your payment.
             </p>
           </>
@@ -101,32 +93,37 @@ function ProcessingContent() {
 
         {status === "confirmed" && (
           <>
-            <div className="text-4xl">&#10003;</div>
-            <h1 className="text-2xl font-bold text-success">
+            <div className="w-14 h-14 rounded-sm bg-[var(--color-severity-normal)] bg-opacity-20 flex items-center justify-center mx-auto">
+              <span className="text-[var(--color-severity-normal)] text-2xl">&#10003;</span>
+            </div>
+            <h1 className="headline-lg text-2xl text-[var(--color-severity-normal)]">
               Payment confirmed!
             </h1>
-            <p className="text-base-content/60">Preparing your study...</p>
+            <p className="text-[var(--color-rm-on-surface-dim)]">Preparing your study...</p>
           </>
         )}
 
         {status === "uploading" && (
           <>
-            <span className="loading loading-spinner loading-lg text-primary"></span>
-            <h1 className="text-2xl font-bold">Uploading your study...</h1>
-            <progress
-              className="progress progress-primary w-full"
-              value={progress}
-              max="100"
-            ></progress>
-            <p className="text-base-content/60">{progress}% complete</p>
+            <span className="loading loading-spinner loading-lg text-[var(--color-rm-primary)]"></span>
+            <h1 className="headline-lg text-2xl">Uploading your study...</h1>
+            <div className="w-full bg-[var(--color-surface-highest)] rounded-sm h-2">
+              <div
+                className="gradient-primary h-2 rounded-sm transition-all"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <p className="value-readout text-sm">{progress}% complete</p>
           </>
         )}
 
         {status === "complete" && (
           <>
-            <div className="text-5xl text-success">&#10003;</div>
-            <h1 className="text-2xl font-bold text-success">All done!</h1>
-            <p className="text-base-content/60">
+            <div className="w-16 h-16 rounded-sm bg-[var(--color-severity-normal)] bg-opacity-20 flex items-center justify-center mx-auto">
+              <span className="text-[var(--color-severity-normal)] text-3xl">&#10003;</span>
+            </div>
+            <h1 className="headline-lg text-2xl text-[var(--color-severity-normal)]">All done!</h1>
+            <p className="text-[var(--color-rm-on-surface-dim)]">
               Redirecting to your dashboard...
             </p>
           </>
@@ -134,11 +131,13 @@ function ProcessingContent() {
 
         {status === "error" && (
           <>
-            <div className="text-5xl text-error">&#10007;</div>
-            <h1 className="text-2xl font-bold text-error">
+            <div className="w-16 h-16 rounded-sm bg-[var(--color-severity-severe)] bg-opacity-20 flex items-center justify-center mx-auto">
+              <span className="text-[var(--color-severity-severe)] text-3xl">&#10007;</span>
+            </div>
+            <h1 className="headline-lg text-2xl text-[var(--color-severity-severe)]">
               Something went wrong
             </h1>
-            <p className="text-base-content/60">{error}</p>
+            <p className="text-[var(--color-rm-on-surface-dim)]">{error}</p>
             <button
               onClick={() => router.push("/dashboard")}
               className="btn btn-primary"
@@ -156,8 +155,8 @@ export default function ProcessingPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen flex items-center justify-center">
-          <span className="loading loading-spinner loading-lg text-primary"></span>
+        <main className="min-h-screen flex items-center justify-center bg-[var(--color-surface)]">
+          <span className="loading loading-spinner loading-lg text-[var(--color-rm-primary)]"></span>
         </main>
       }
     >

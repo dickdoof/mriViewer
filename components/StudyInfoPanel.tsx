@@ -26,16 +26,18 @@ export default function StudyInfoPanel({ study }: StudyInfoPanelProps) {
   ].filter((f) => f.value);
 
   return (
-    <div className="space-y-3">
-      <h3 className="font-bold text-lg px-1">Study Info</h3>
-      <div className="space-y-2">
-        {fields.map((field) => (
+    <div>
+      <h3 className="label-md px-1 mb-3">Study Info</h3>
+      <div className="space-y-0">
+        {fields.map((field, i) => (
           <div
             key={field.label}
-            className="flex justify-between text-sm px-1"
+            className={`flex justify-between py-2 px-2 rounded-sm ${
+              i % 2 === 1 ? "bg-[var(--color-surface-low)]" : ""
+            }`}
           >
-            <span className="text-base-content/60">{field.label}</span>
-            <span className="font-medium text-right max-w-[60%] truncate">
+            <span className="label-sm">{field.label}</span>
+            <span className="value-readout text-xs text-right max-w-[60%] truncate">
               {field.value}
             </span>
           </div>

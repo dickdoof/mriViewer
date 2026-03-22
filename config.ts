@@ -44,8 +44,8 @@ const config = {
     supportEmail: "support@mriviewer.app",
   },
   colors: {
-    theme: "light",
-    main: "#570df8",
+    theme: "dark",
+    main: "#adc6ff",
   },
   auth: {
     loginUrl: "/auth/login",

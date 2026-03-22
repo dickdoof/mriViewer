@@ -6,18 +6,30 @@ interface FindingsPanelProps {
   onSelect?: (index: number) => void;
 }
 
-const severityBadge: Record<
+const severityConfig: Record<
   string,
-  { color: string; bg: string; label: string }
+  { badge: string; glow: string; label: string }
 > = {
-  severe: { color: "text-red-700", bg: "bg-red-100", label: "Severe" },
+  severe: {
+    badge: "severity-severe",
+    glow: "anomaly-glow-severe",
+    label: "Severe",
+  },
   moderate: {
-    color: "text-orange-700",
-    bg: "bg-orange-100",
+    badge: "severity-moderate",
+    glow: "anomaly-glow-moderate",
     label: "Moderate",
   },
-  mild: { color: "text-yellow-700", bg: "bg-yellow-100", label: "Mild" },
-  normal: { color: "text-green-700", bg: "bg-green-100", label: "Normal" },
+  mild: {
+    badge: "severity-mild",
+    glow: "anomaly-glow-mild",
+    label: "Mild",
+  },
+  normal: {
+    badge: "severity-normal",
+    glow: "anomaly-glow-normal",
+    label: "Normal",
+  },
 };
 
 export default function FindingsPanel({
@@ -27,41 +39,41 @@ export default function FindingsPanel({
 }: FindingsPanelProps) {
   if (findings.length === 0) {
     return (
-      <div className="p-4 text-center text-base-content/60">
-        <p className="text-lg font-semibold">No findings</p>
-        <p className="text-sm">No abnormalities were detected in this study.</p>
+      <div className="p-6 text-center">
+        <p className="title-sm text-lg font-bold text-[var(--color-rm-on-surface-dim)]">No findings</p>
+        <p className="label-sm mt-1">No abnormalities were detected in this study.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
-      <h3 className="font-bold text-lg px-1">
-        Findings ({findings.length})
+    <div className="space-y-1">
+      <h3 className="label-md px-1 mb-3">
+        Findings <span className="value-readout">({findings.length})</span>
       </h3>
       {findings.map((finding, i) => {
-        const badge = severityBadge[finding.severity] || severityBadge.normal;
+        const config = severityConfig[finding.severity] || severityConfig.normal;
         const isSelected = selectedIndex === i;
 
         return (
           <div
             key={i}
-            className={`p-3 rounded-lg border cursor-pointer transition-all ${
-              isSelected
-                ? "border-primary bg-primary/5 shadow-sm"
-                : "border-base-content/10 hover:border-base-content/20"
-            }`}
+            className={`
+              p-3 rounded-sm cursor-pointer transition-all
+              ${isSelected
+                ? `bg-[var(--color-surface-high)] ${config.glow}`
+                : "bg-[var(--color-surface-low)] hover:bg-[var(--color-surface-high)]"
+              }
+            `}
             onClick={() => onSelect?.(i)}
           >
             <div className="flex items-start justify-between gap-2">
-              <h4 className="font-semibold text-sm">{finding.label}</h4>
-              <span
-                className={`px-2 py-0.5 rounded-full text-xs font-medium ${badge.bg} ${badge.color}`}
-              >
-                {badge.label}
+              <h4 className="title-sm text-sm font-bold">{finding.label}</h4>
+              <span className={`severity-badge ${config.badge}`}>
+                {config.label}
               </span>
             </div>
-            <p className="text-sm text-base-content/70 mt-1">
+            <p className="text-xs text-[var(--color-rm-on-surface-dim)] mt-1.5" style={{ lineHeight: 1.5 }}>
               {finding.description}
             </p>
           </div>

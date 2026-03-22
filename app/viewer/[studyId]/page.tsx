@@ -25,7 +25,6 @@ export default async function ViewerPage({ params }: ViewerPageProps) {
     redirect(`/auth/login?redirect=/viewer/${studyId}`);
   }
 
-  // Fetch study (RLS enforces ownership)
   const { data: study } = await supabase
     .from("studies")
     .select("*")
@@ -40,7 +39,6 @@ export default async function ViewerPage({ params }: ViewerPageProps) {
     redirect("/dashboard");
   }
 
-  // Fetch series and files
   const { data: seriesList } = await supabase
     .from("series")
     .select("*")
@@ -53,7 +51,6 @@ export default async function ViewerPage({ params }: ViewerPageProps) {
     .eq("series.study_id", studyId)
     .order("slice_index");
 
-  // Fetch annotations
   const fileIds = dicomFiles?.map((f: { id: string }) => f.id) || [];
   const { data: annotations } = fileIds.length > 0
     ? await supabase
@@ -62,7 +59,6 @@ export default async function ViewerPage({ params }: ViewerPageProps) {
         .in("dicom_file_id", fileIds)
     : { data: [] as { findings: unknown }[] };
 
-  // Generate presigned URLs for all DICOM files
   const slices = await Promise.all(
     (dicomFiles || []).map(async (file) => {
       let url = "";
@@ -78,7 +74,6 @@ export default async function ViewerPage({ params }: ViewerPageProps) {
     })
   );
 
-  // Collect all findings
   const allFindings: Finding[] = ((annotations || []) as { findings: unknown }[]).flatMap(
     (a) => (a.findings as Finding[]) || []
   );
@@ -86,9 +81,9 @@ export default async function ViewerPage({ params }: ViewerPageProps) {
   const totalSlices = dicomFiles?.length || 0;
 
   return (
-    <main className="min-h-screen bg-base-100">
-      {/* Header bar */}
-      <div className="bg-base-200 border-b border-base-content/10 px-6 py-3 flex items-center justify-between">
+    <main className="min-h-screen bg-[var(--color-surface)]">
+      {/* Top bar — surface-low, no border line (tonal separation) */}
+      <div className="bg-[var(--color-surface-low)] px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <a href="/dashboard" className="btn btn-ghost btn-sm">
             <svg
@@ -105,22 +100,23 @@ export default async function ViewerPage({ params }: ViewerPageProps) {
             </svg>
             Dashboard
           </a>
-          <h1 className="font-bold text-lg">
-            {study.patient_name || "MRI Study"} &mdash;{" "}
-            {study.study_date || ""}
+          <h1 className="title-sm font-bold">
+            {study.patient_name || "MRI Study"}{" "}
+            <span className="text-[var(--color-rm-on-surface-faint)]">&mdash;</span>{" "}
+            <span className="value-readout text-sm">{study.study_date || ""}</span>
           </h1>
         </div>
       </div>
 
-      {/* Main content */}
+      {/* Main content — Asymmetrical layout: wide viewport + slim sidebar */}
       <div className="flex h-[calc(100vh-56px)]">
-        {/* Viewer area */}
+        {/* Viewer area — takes maximum space */}
         <div className="flex-1 p-4">
           <DicomViewer slices={slices} allFindings={allFindings} />
         </div>
 
-        {/* Right sidebar */}
-        <div className="w-80 border-l border-base-content/10 overflow-y-auto p-4 space-y-6">
+        {/* Right sidebar — high-density technical panel */}
+        <div className="w-80 bg-[var(--color-surface-low)] overflow-y-auto p-4 space-y-6">
           <StudyInfoPanel
             study={{
               patientName: study.patient_name,
@@ -134,11 +130,12 @@ export default async function ViewerPage({ params }: ViewerPageProps) {
             }}
           />
 
-          <div className="divider"></div>
+          {/* Tonal separator — not a border line */}
+          <div className="h-px bg-[var(--color-surface-highest)] opacity-50"></div>
 
           <FindingsPanel findings={allFindings} />
 
-          <div className="divider"></div>
+          <div className="h-px bg-[var(--color-surface-highest)] opacity-50"></div>
 
           <DoctorLetterButton studyId={studyId} />
         </div>

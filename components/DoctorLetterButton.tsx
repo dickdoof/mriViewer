@@ -78,11 +78,11 @@ export default function DoctorLetterButton({ studyId }: DoctorLetterButtonProps)
     <div className="space-y-3">
       {/* Language selector */}
       <div className="flex items-center gap-2">
-        <label className="text-sm text-base-content/60 shrink-0">
-          Letter language:
+        <label className="label-md shrink-0">
+          Language
         </label>
         <select
-          className="select select-bordered select-sm w-full"
+          className="select select-sm w-full"
           value={language}
           onChange={(e) => handleLanguageChange(e.target.value)}
           disabled={isLoading}
