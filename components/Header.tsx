@@ -14,16 +14,16 @@ const links: {
   label: string;
 }[] = [
   {
+    href: "/#upload",
+    label: "Upload",
+  },
+  {
     href: "/#pricing",
     label: "Pricing",
   },
   {
-    href: "/#testimonials",
-    label: "Reviews",
-  },
-  {
-    href: "/#faq",
-    label: "FAQ",
+    href: "/dashboard",
+    label: "My Studies",
   },
 ];
 
