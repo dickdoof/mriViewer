@@ -192,16 +192,18 @@ export default function LandingPage() {
               ].map((item) => (
                 <div
                   key={item.step}
-                  className="relative p-6 rounded-sm bg-[var(--color-surface)] ghost-border tonal-shift group"
+                  className="relative p-6 rounded-sm bg-[var(--color-surface)] ghost-border tonal-shift group overflow-hidden"
                 >
-                  <span className="absolute top-4 right-4 font-[family-name:var(--font-space-grotesk)] text-[var(--color-rm-on-surface-faint)] text-xs font-bold tracking-widest">
+                  <span className="absolute bottom-2 left-5 font-[family-name:var(--font-space-grotesk)] text-[5rem] leading-none font-bold text-[var(--color-rm-on-surface-faint)] opacity-15 select-none pointer-events-none">
                     {item.step}
                   </span>
-                  <div className="w-12 h-12 rounded-sm bg-[var(--color-surface-high)] flex items-center justify-center text-[var(--color-rm-primary)] mb-5">
-                    <span className="material-symbols-outlined">{item.icon}</span>
+                  <div className="relative z-10">
+                    <div className="w-12 h-12 rounded-sm bg-[var(--color-surface-high)] flex items-center justify-center text-[var(--color-rm-primary)] mb-5">
+                      <span className="material-symbols-outlined">{item.icon}</span>
+                    </div>
+                    <h3 className="title-sm text-lg font-bold mb-2">{item.title}</h3>
+                    <p className="text-sm text-[var(--color-rm-on-surface-dim)]" style={{ lineHeight: 1.6 }}>{item.desc}</p>
                   </div>
-                  <h3 className="title-sm text-lg font-bold mb-2">{item.title}</h3>
-                  <p className="text-sm text-[var(--color-rm-on-surface-dim)]" style={{ lineHeight: 1.6 }}>{item.desc}</p>
                 </div>
               ))}
             </div>
