@@ -31,6 +31,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 			data-theme={config.colors.theme}
 			className={`${inter.variable} ${spaceGrotesk.variable} ${inter.className}`}
 		>
+			<head>
+				<link
+					rel="stylesheet"
+					href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+				/>
+				<link
+					rel="stylesheet"
+					href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+				/>
+			</head>
 			<body className="bg-[var(--color-surface)] text-[var(--color-rm-on-surface)]">
 				<ClientLayout>{children}</ClientLayout>
 			</body>
