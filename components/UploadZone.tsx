@@ -132,10 +132,10 @@ export default function UploadZone({ onFilesLoaded, isLoading }: UploadZoneProps
           </div>
           <div>
             <p className="title-sm text-lg font-bold text-[var(--color-rm-on-surface)]">
-              Drop your DICOM files here
+              Drop DICOM files to analyze
             </p>
-            <p className="label-sm mt-2">
-              or click to browse &mdash; .dcm files from your CD or USB
+            <p className="label-sm mt-2 uppercase tracking-wider">
+              or click to upload
             </p>
           </div>
         </div>
