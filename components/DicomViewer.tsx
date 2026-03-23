@@ -26,34 +26,50 @@ export default function DicomViewer({ slices, allFindings }: DicomViewerProps) {
   const [showFindings, setShowFindings] = useState(true);
   const [selectedFinding, setSelectedFinding] = useState<number | undefined>();
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const cachedImageRef = useRef<HTMLImageElement | null>(null);
+  const isPanningRef = useRef(false);
+  const panStartRef = useRef({ x: 0, y: 0 });
 
   const currentUrl = slices[currentSlice]?.url;
 
+  // Load image only when URL changes
   useEffect(() => {
     if (!currentUrl) return;
     setImageLoaded(false);
+    cachedImageRef.current = null;
 
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      canvas.width = img.width;
-      canvas.height = img.height;
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      ctx.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
-      ctx.drawImage(img, 0, 0);
+      cachedImageRef.current = img;
       setImageLoaded(true);
     };
     img.src = currentUrl;
-  }, [currentUrl, brightness, contrast]);
+  }, [currentUrl]);
 
+  // Redraw canvas whenever cached image or filters change
+  useEffect(() => {
+    const img = cachedImageRef.current;
+    if (!img) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
+    ctx.drawImage(img, 0, 0);
+  }, [imageLoaded, brightness, contrast]);
+
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
@@ -67,14 +83,89 @@ export default function DicomViewer({ slices, allFindings }: DicomViewerProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [slices.length]);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    setZoom((z) => Math.max(0.5, Math.min(4, z + (e.deltaY > 0 ? -0.1 : 0.1))));
-  }, []);
+  // Wheel event: plain scroll = slices, Ctrl/Meta+scroll = zoom
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      if (e.ctrlKey || e.metaKey) {
+        setZoom((z) => Math.max(0.5, Math.min(4, z + (e.deltaY > 0 ? -0.1 : 0.1))));
+      } else {
+        setCurrentSlice((s) => {
+          const next = s + (e.deltaY > 0 ? 1 : -1);
+          return Math.max(0, Math.min(slices.length - 1, next));
+        });
+      }
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [slices.length]);
+
+  // Reset pan when zoom <= 1
+  useEffect(() => {
+    if (zoom <= 1) setPanOffset({ x: 0, y: 0 });
+  }, [zoom]);
 
   const handleZoomIn = () => setZoom((z) => Math.min(4, z + 0.25));
   const handleZoomOut = () => setZoom((z) => Math.max(0.5, z - 0.25));
-  const handleZoomReset = () => { setZoom(1); };
+  const handleZoomReset = () => { setZoom(1); setPanOffset({ x: 0, y: 0 }); };
+
+  // Draggable slider helper
+  const startDrag = useCallback(
+    (
+      e: React.MouseEvent<HTMLDivElement>,
+      setter: (value: number) => void,
+      maxValue: number
+    ) => {
+      e.preventDefault();
+      const bar = e.currentTarget;
+      const rect = bar.getBoundingClientRect();
+
+      const update = (clientX: number) => {
+        const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        setter(Math.round(pct * maxValue));
+      };
+
+      update(e.clientX);
+
+      const onMove = (ev: MouseEvent) => update(ev.clientX);
+      const onUp = () => {
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+      };
+
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    },
+    []
+  );
+
+  // Pan handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (zoom <= 1) return;
+    isPanningRef.current = true;
+    panStartRef.current = { x: e.clientX - panOffset.x, y: e.clientY - panOffset.y };
+    (e.currentTarget as HTMLElement).style.cursor = "grabbing";
+  }, [zoom, panOffset]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isPanningRef.current) return;
+    setPanOffset({
+      x: e.clientX - panStartRef.current.x,
+      y: e.clientY - panStartRef.current.y,
+    });
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    if (!isPanningRef.current) return;
+    isPanningRef.current = false;
+    if (containerRef.current) {
+      containerRef.current.style.cursor = zoom > 1 ? "grab" : "crosshair";
+    }
+  }, [zoom]);
 
   const slicePercent = slices.length > 1 ? ((currentSlice) / (slices.length - 1)) * 100 : 0;
 
@@ -146,20 +237,23 @@ export default function DicomViewer({ slices, allFindings }: DicomViewerProps) {
       {/* VIEWPORT */}
       <div
         ref={containerRef}
-        className="flex-1 relative flex items-center justify-center overflow-hidden bg-black cursor-crosshair group"
-        onWheel={handleWheel}
+        className="flex-1 relative flex items-center justify-center overflow-hidden bg-black group select-none"
+        style={{ cursor: zoom > 1 ? "grab" : "crosshair" }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
       >
         <div
           style={{
-            transform: `scale(${zoom})`,
-            transition: "transform 0.1s ease",
+            transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
+            transition: isPanningRef.current ? "none" : "transform 0.1s ease",
           }}
           className="relative"
         >
           <canvas
             ref={canvasRef}
-            className="max-w-full max-h-[85vh] grayscale"
-            style={{ filter: `contrast(1.25)` }}
+            className="max-w-full max-h-[85vh]"
           />
 
           {imageLoaded && showFindings && (
@@ -189,17 +283,13 @@ export default function DicomViewer({ slices, allFindings }: DicomViewerProps) {
         </div>
       </div>
 
-      {/* SLICE & CONTROLS BAR */}
-      {slices.length > 1 && (
-        <div className="h-16 border-t border-[#424754]/10 bg-[#191f31] px-6 flex items-center gap-10">
+      {/* SLICE & CONTROLS BAR — always visible */}
+      <div className="h-16 border-t border-[#424754]/10 bg-[#191f31] px-6 flex items-center gap-10">
+        {slices.length > 1 && (
           <div className="flex-1 flex items-center gap-4">
             <span className="font-[family-name:var(--font-data)] text-[0.65rem] uppercase tracking-wider text-slate-500 w-12 text-right">Slice</span>
-            <div className="flex-1 h-0.5 bg-[#424754]/20 relative group cursor-pointer"
-              onClick={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const pct = (e.clientX - rect.left) / rect.width;
-                setCurrentSlice(Math.round(pct * (slices.length - 1)));
-              }}
+            <div className="flex-1 h-1.5 bg-[#424754]/20 relative group cursor-pointer"
+              onMouseDown={(e) => startDrag(e, (v) => setCurrentSlice(v), slices.length - 1)}
             >
               <div className="absolute h-full bg-[#4d8eff]" style={{ width: `${slicePercent}%` }} />
               <div
@@ -209,44 +299,36 @@ export default function DicomViewer({ slices, allFindings }: DicomViewerProps) {
             </div>
             <span className="font-[family-name:var(--font-data)] text-[0.7rem] text-white w-12">{currentSlice + 1}/{slices.length}</span>
           </div>
+        )}
 
-          <div className="flex items-center gap-8 border-l border-[#424754]/10 pl-10">
-            {/* Brightness */}
-            <div className="flex flex-col gap-1 w-24">
-              <div className="flex justify-between text-[0.55rem] font-[family-name:var(--font-data)] text-slate-500 uppercase">
-                <span>BRT</span>
-                <span className="text-[#adc6ff]">{brightness}%</span>
-              </div>
-              <div className="h-0.5 bg-[#424754]/20 relative cursor-pointer"
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const pct = (e.clientX - rect.left) / rect.width;
-                  setBrightness(Math.round(pct * 200));
-                }}
-              >
-                <div className="absolute h-full bg-[#adc6ff]/60" style={{ width: `${brightness / 2}%` }} />
-              </div>
+        <div className={`flex items-center gap-8 ${slices.length > 1 ? "border-l border-[#424754]/10 pl-10" : "flex-1 justify-center"}`}>
+          {/* Brightness */}
+          <div className="flex flex-col gap-1 w-24">
+            <div className="flex justify-between text-[0.55rem] font-[family-name:var(--font-data)] text-slate-500 uppercase">
+              <span>BRT</span>
+              <span className="text-[#adc6ff]">{brightness}%</span>
             </div>
+            <div className="h-1.5 bg-[#424754]/20 relative cursor-pointer"
+              onMouseDown={(e) => startDrag(e, setBrightness, 200)}
+            >
+              <div className="absolute h-full bg-[#adc6ff]/60" style={{ width: `${brightness / 2}%` }} />
+            </div>
+          </div>
 
-            {/* Contrast */}
-            <div className="flex flex-col gap-1 w-24">
-              <div className="flex justify-between text-[0.55rem] font-[family-name:var(--font-data)] text-slate-500 uppercase">
-                <span>CTR</span>
-                <span className="text-[#adc6ff]">{contrast}%</span>
-              </div>
-              <div className="h-0.5 bg-[#424754]/20 relative cursor-pointer"
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const pct = (e.clientX - rect.left) / rect.width;
-                  setContrast(Math.round(pct * 200));
-                }}
-              >
-                <div className="absolute h-full bg-[#adc6ff]/60" style={{ width: `${contrast / 2}%` }} />
-              </div>
+          {/* Contrast */}
+          <div className="flex flex-col gap-1 w-24">
+            <div className="flex justify-between text-[0.55rem] font-[family-name:var(--font-data)] text-slate-500 uppercase">
+              <span>CTR</span>
+              <span className="text-[#adc6ff]">{contrast}%</span>
+            </div>
+            <div className="h-1.5 bg-[#424754]/20 relative cursor-pointer"
+              onMouseDown={(e) => startDrag(e, setContrast, 200)}
+            >
+              <div className="absolute h-full bg-[#adc6ff]/60" style={{ width: `${contrast / 2}%` }} />
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
