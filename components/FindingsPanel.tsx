@@ -1,7 +1,7 @@
 import type { Finding } from "@/libs/annotate";
 
 interface FindingsPanelProps {
-  findings: Finding[];
+  findings: (Finding & { sliceIndex?: number })[];
   selectedIndex?: number;
   onSelect?: (index: number) => void;
   locked?: boolean;
@@ -97,11 +97,18 @@ export default function FindingsPanel({
                 >
                   {config.emoji} {config.label}
                 </span>
-                {location && (
-                  <span className="font-[family-name:var(--font-data)] text-[0.6rem] text-slate-500 uppercase">
-                    {location}
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {finding.sliceIndex !== undefined && (
+                    <span className="font-[family-name:var(--font-data)] text-[0.55rem] text-[#adc6ff]/60 uppercase">
+                      S{finding.sliceIndex + 1}
+                    </span>
+                  )}
+                  {location && (
+                    <span className="font-[family-name:var(--font-data)] text-[0.6rem] text-slate-500 uppercase">
+                      {location}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {locked ? (

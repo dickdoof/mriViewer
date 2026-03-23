@@ -1,4 +1,84 @@
 /**
+ * Server-side: Convert a DICOM buffer to a PNG buffer + base64 using dcmjs + sharp.
+ * Works in Node.js (no canvas/document needed).
+ */
+export async function dicomBufferToPng(
+  buffer: Buffer
+): Promise<{ pngBuffer: Buffer; base64: string } | null> {
+  try {
+    const dcmjs = await import("dcmjs");
+    const sharp = (await import("sharp")).default;
+
+    const dicomData = dcmjs.data.DicomMessage.readFile(
+      buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
+    );
+    const dataset = dcmjs.data.DicomMetaDictionary.naturalizeDataset(
+      dicomData.dict
+    );
+
+    const rows = dataset.Rows || 512;
+    const cols = dataset.Columns || 512;
+    const bitsAllocated = dataset.BitsAllocated || 16;
+    const pixelRepresentation = dataset.PixelRepresentation || 0;
+    const rescaleSlope = dataset.RescaleSlope || 1;
+    const rescaleIntercept = dataset.RescaleIntercept || 0;
+    const windowCenter = Array.isArray(dataset.WindowCenter)
+      ? dataset.WindowCenter[0]
+      : dataset.WindowCenter || 127;
+    const windowWidth = Array.isArray(dataset.WindowWidth)
+      ? dataset.WindowWidth[0]
+      : dataset.WindowWidth || 256;
+
+    const pixelDataElement = dataset.PixelData;
+    if (!pixelDataElement) return null;
+
+    let rawPixels: ArrayBuffer;
+    if (Array.isArray(pixelDataElement)) {
+      rawPixels = pixelDataElement[0];
+    } else if (pixelDataElement instanceof ArrayBuffer) {
+      rawPixels = pixelDataElement;
+    } else {
+      return null;
+    }
+
+    let pixelArray: Int16Array | Uint16Array | Uint8Array;
+    if (bitsAllocated === 16) {
+      pixelArray =
+        pixelRepresentation === 1
+          ? new Int16Array(rawPixels)
+          : new Uint16Array(rawPixels);
+    } else {
+      pixelArray = new Uint8Array(rawPixels);
+    }
+
+    const wc = Number(windowCenter);
+    const ww = Number(windowWidth);
+    const lower = wc - ww / 2;
+    const upper = wc + ww / 2;
+
+    const grayscale = Buffer.alloc(rows * cols);
+    for (let i = 0; i < pixelArray.length && i < rows * cols; i++) {
+      const hu = pixelArray[i] * rescaleSlope + rescaleIntercept;
+      if (hu <= lower) grayscale[i] = 0;
+      else if (hu >= upper) grayscale[i] = 255;
+      else grayscale[i] = Math.round(((hu - lower) / (upper - lower)) * 255);
+    }
+
+    const pngBuffer = await sharp(grayscale, {
+      raw: { width: cols, height: rows, channels: 1 },
+    })
+      .png()
+      .toBuffer();
+
+    const base64 = pngBuffer.toString("base64");
+    return { pngBuffer, base64 };
+  } catch (err) {
+    console.error("Server-side DICOM→PNG error:", err);
+    return null;
+  }
+}
+
+/**
  * Convert a DICOM ArrayBuffer to a base64-encoded PNG string.
  * Client-only — uses canvas for rendering.
  */

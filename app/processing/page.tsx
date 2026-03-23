@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/libs/supabase/client";
+import { loadDicomFiles, clearDicomFiles } from "@/libs/dicomStore";
+import { extractDicomMetadata } from "@/libs/dicomUtils";
 
 function ProcessingContent() {
   const searchParams = useSearchParams();
@@ -28,20 +30,76 @@ function ProcessingContent() {
 
       const { tempStudyId } = JSON.parse(pendingStudy);
 
+      // Load DICOM files from IndexedDB
+      setProgress(5);
+      const files = await loadDicomFiles();
+      if (files.length === 0) {
+        setError("No DICOM files found. Please re-upload your files.");
+        setStatus("error");
+        return;
+      }
+
+      // Extract metadata from first file
+      setProgress(10);
+      const metadata = await extractDicomMetadata(files[0].arrayBuffer);
+
+      // Build FormData with metadata + all DICOM files
+      const formData = new FormData();
+      formData.append("stripeSessionId", sessionId || "");
+      formData.append(
+        "metadata",
+        JSON.stringify({
+          patientName: metadata.patientName || "Unknown",
+          studyDate: metadata.studyDate || new Date().toISOString().split("T")[0],
+          modality: metadata.modality || "MR",
+          description: metadata.description || "",
+          institution: metadata.institution || "",
+          bodyRegion: "Unknown",
+          seriesName: metadata.description || "Series 1",
+        })
+      );
+
+      // Append each DICOM file
+      for (let i = 0; i < files.length; i++) {
+        const blob = new Blob([files[i].arrayBuffer], {
+          type: "application/dicom",
+        });
+        const fileName = files[i].name || `slice_${i.toString().padStart(4, "0")}.dcm`;
+        formData.append("files", blob, fileName);
+        setProgress(10 + Math.round((i / files.length) * 30));
+      }
+
+      // Upload to persist API
+      setProgress(40);
+      const response = await fetch("/api/studies/persist", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to persist study");
+      }
+
+      const { studyId } = await response.json();
+
       setProgress(100);
       setStatus("complete");
 
+      // Clean up
       sessionStorage.removeItem("pendingStudy");
+      await clearDicomFiles();
 
+      // Redirect to the viewer
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push(`/viewer/${studyId}`);
       }, 2000);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Upload failed";
       setError(message);
       setStatus("error");
     }
-  }, [router]);
+  }, [router, sessionId]);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -106,7 +164,10 @@ function ProcessingContent() {
         {status === "uploading" && (
           <>
             <span className="loading loading-spinner loading-lg text-[var(--color-rm-primary)]"></span>
-            <h1 className="headline-lg text-2xl">Uploading your study...</h1>
+            <h1 className="headline-lg text-2xl">Processing your study...</h1>
+            <p className="text-[var(--color-rm-on-surface-dim)] text-sm">
+              Uploading files and running AI analysis on each slice. This may take a moment.
+            </p>
             <div className="w-full bg-[var(--color-surface-highest)] rounded-sm h-2">
               <div
                 className="gradient-primary h-2 rounded-sm transition-all"
@@ -124,7 +185,7 @@ function ProcessingContent() {
             </div>
             <h1 className="headline-lg text-2xl text-[var(--color-severity-normal)]">All done!</h1>
             <p className="text-[var(--color-rm-on-surface-dim)]">
-              Redirecting to your dashboard...
+              Redirecting to your viewer...
             </p>
           </>
         )}

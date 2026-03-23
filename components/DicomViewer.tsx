@@ -12,10 +12,11 @@ interface DicomSlice {
 
 interface DicomViewerProps {
   slices: DicomSlice[];
-  allFindings: Finding[];
+  allFindings: (Finding & { sliceIndex: number })[];
+  navigateToSlice?: number;
 }
 
-export default function DicomViewer({ slices, allFindings }: DicomViewerProps) {
+export default function DicomViewer({ slices, allFindings, navigateToSlice }: DicomViewerProps) {
   const [currentSlice, setCurrentSlice] = useState(
     Math.floor(slices.length / 2)
   );
@@ -103,6 +104,13 @@ export default function DicomViewer({ slices, allFindings }: DicomViewerProps) {
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
   }, [slices.length]);
+
+  // Navigate to a specific slice when requested from FindingsPanel
+  useEffect(() => {
+    if (navigateToSlice !== undefined && navigateToSlice >= 0 && navigateToSlice < slices.length) {
+      setCurrentSlice(navigateToSlice);
+    }
+  }, [navigateToSlice, slices.length]);
 
   // Reset pan when zoom <= 1
   useEffect(() => {
@@ -258,7 +266,7 @@ export default function DicomViewer({ slices, allFindings }: DicomViewerProps) {
 
           {imageLoaded && showFindings && (
             <AnnotationOverlay
-              findings={allFindings}
+              findings={slices[currentSlice]?.findings || []}
               selectedIndex={selectedFinding}
               onSelect={setSelectedFinding}
             />
