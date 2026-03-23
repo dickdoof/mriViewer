@@ -6,6 +6,7 @@ import PreviewViewer from "@/components/PreviewViewer";
 import PaywallOverlay from "@/components/PaywallOverlay";
 import FindingsPanel from "@/components/FindingsPanel";
 import StudyInfoPanel from "@/components/StudyInfoPanel";
+import DevPremiumButton from "@/components/DevPremiumButton";
 import config from "@/config";
 import { loadDicomFiles } from "@/libs/dicomStore";
 import { dicomToBase64, extractDicomMetadata } from "@/libs/dicomUtils";
@@ -20,6 +21,7 @@ export default function PreviewPage() {
   const [imageDimensions] = useState({ width: 512, height: 512 });
   const [fileCount, setFileCount] = useState(0);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+  const [devPremium, setDevPremium] = useState(false);
   const [metadata, setMetadata] = useState<{
     modality?: string;
     institution?: string;
@@ -148,6 +150,10 @@ export default function PreviewPage() {
               </span>
             </div>
           )}
+          <DevPremiumButton
+            onActivate={() => setDevPremium(true)}
+            isActive={devPremium}
+          />
           <button
             onClick={handleCheckout}
             disabled={isCheckoutLoading}
@@ -232,13 +238,15 @@ export default function PreviewPage() {
                 imageWidth={imageDimensions.width}
                 imageHeight={imageDimensions.height}
               />
-              <PaywallOverlay
-                findingCount={findings.length}
-                regionCount={regions.size}
-                highestSeverity={highestSeverity}
-                onCheckout={handleCheckout}
-                isCheckoutLoading={isCheckoutLoading}
-              />
+              {!devPremium && (
+                <PaywallOverlay
+                  findingCount={findings.length}
+                  regionCount={regions.size}
+                  highestSeverity={highestSeverity}
+                  onCheckout={handleCheckout}
+                  isCheckoutLoading={isCheckoutLoading}
+                />
+              )}
             </>
           ) : (
             <div className="h-full flex flex-col items-center justify-center bg-black gap-4">
@@ -275,7 +283,7 @@ export default function PreviewPage() {
 
             <div className="h-px bg-[#424754]/10" />
 
-            <FindingsPanel findings={findings} locked={true} />
+            <FindingsPanel findings={findings} locked={!devPremium} />
 
             {/* AI Comparison (locked) */}
             <div className="p-4 bg-[#adc6ff]/5 border border-[#adc6ff]/10 opacity-60">
