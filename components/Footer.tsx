@@ -5,14 +5,15 @@ import logo from "@/app/icon.png";
 
 const Footer = () => {
   return (
-    <footer className="bg-[var(--color-surface-low)]">
-      <div className="max-w-7xl mx-auto px-8 py-24">
-        <div className="flex lg:items-start md:flex-row md:flex-nowrap flex-wrap flex-col">
-          <div className="w-64 flex-shrink-0 md:mx-0 mx-auto text-center md:text-left">
+    <footer className="bg-[var(--color-surface-container-lowest)]">
+      <div className="max-w-7xl mx-auto px-8 py-20">
+        {/* 4-column grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+          {/* Column 1: Brand */}
+          <div className="space-y-4">
             <Link
-              href="/#"
-              aria-current="page"
-              className="flex gap-2 justify-center md:justify-start items-center"
+              href="/"
+              className="flex gap-2 items-center"
             >
               <Image
                 src={logo}
@@ -22,68 +23,87 @@ const Footer = () => {
                 width={24}
                 height={24}
               />
-              <strong className="font-extrabold tracking-tight text-base md:text-lg text-[var(--color-rm-on-surface)]">
+              <strong className="font-extrabold tracking-tight text-base text-[var(--color-rm-on-surface)]">
                 {config.appName}
               </strong>
             </Link>
-
-            <p className="mt-3 text-sm text-[var(--color-rm-on-surface-dim)]">
+            <p className="text-sm text-[var(--color-rm-on-surface-dim)]" style={{ lineHeight: 1.6 }}>
               {config.appDescription}
             </p>
-            <p className="mt-3 label-sm">
-              Copyright &copy; {new Date().getFullYear()} &mdash; All rights reserved
-            </p>
-
-            <p className="mt-4 text-[0.625rem] text-[var(--color-rm-on-surface-faint)]">
-              For informational purposes only. Not a substitute for
-              professional medical advice.
-            </p>
           </div>
-          <div className="flex-grow flex flex-wrap justify-center -mb-10 md:mt-0 mt-10 text-center">
-            <div className="lg:w-1/3 md:w-1/2 w-full px-4">
-              <div className="label-md mb-3 md:text-left">
-                LINKS
-              </div>
 
-              <div className="flex flex-col justify-center items-center md:items-start gap-2 mb-10 text-sm">
-                {config.resend.supportEmail && (
-                  <a
-                    href={`mailto:${config.resend.supportEmail}`}
-                    target="_blank"
-                    className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors"
-                    aria-label="Contact Support"
-                  >
-                    Support
-                  </a>
-                )}
-                <Link href="/#pricing" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
-                  Pricing
-                </Link>
-                <Link href="/blog" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
-                  Blog
-                </Link>
-                <Link href="/contact" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
-                  Contact
-                </Link>
-              </div>
+          {/* Column 2: Product */}
+          <div>
+            <div className="label-md mb-4">Product</div>
+            <div className="flex flex-col gap-2.5 text-sm">
+              <Link href="/#how-it-works" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
+                How It Works
+              </Link>
+              <Link href="/#pricing" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
+                Pricing
+              </Link>
+              <Link href="/#upload" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
+                DICOM Viewer
+              </Link>
+              <Link href="/blog" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
+                Blog
+              </Link>
             </div>
+          </div>
 
-            <div className="lg:w-1/3 md:w-1/2 w-full px-4">
-              <div className="label-md mb-3 md:text-left">
-                LEGAL
-              </div>
+          {/* Column 3: Support */}
+          <div>
+            <div className="label-md mb-4">Support</div>
+            <div className="flex flex-col gap-2.5 text-sm">
+              <Link href="/contact" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
+                Contact Us
+              </Link>
+              <Link href="/#faq" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
+                FAQ
+              </Link>
+              {config.resend.supportEmail && (
+                <a
+                  href={`mailto:${config.resend.supportEmail}`}
+                  target="_blank"
+                  className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors"
+                >
+                  Email Support
+                </a>
+              )}
+            </div>
+          </div>
 
-              <div className="flex flex-col justify-center items-center md:items-start gap-2 mb-10 text-sm">
-                <Link href="/tos" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
-                  Terms of services
-                </Link>
-                <Link href="/privacy-policy" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
-                  Privacy policy
-                </Link>
-              </div>
+          {/* Column 4: Legal */}
+          <div>
+            <div className="label-md mb-4">Legal</div>
+            <div className="flex flex-col gap-2.5 text-sm">
+              <Link href="/privacy-policy" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
+                Privacy Policy
+              </Link>
+              <Link href="/tos" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
+                Terms of Service
+              </Link>
             </div>
           </div>
         </div>
+
+        {/* Bottom bar */}
+        <div className="mt-16 pt-6 border-t border-[var(--color-outline-variant)]/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="label-sm">
+            Copyright &copy; {new Date().getFullYear()} {config.appName} &mdash; All rights reserved
+          </p>
+          <div className="flex items-center gap-4">
+            <a href={`mailto:${config.resend.supportEmail}`} className="text-[var(--color-rm-on-surface-faint)] hover:text-[var(--color-rm-primary)] transition-colors">
+              <span className="material-symbols-outlined text-lg">mail</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Medical disclaimer */}
+        <p className="mt-6 text-[0.625rem] text-[var(--color-rm-on-surface-faint)] text-center max-w-lg mx-auto">
+          For informational purposes only. Not a substitute for professional medical advice.
+          Always consult a qualified medical professional for diagnosis and treatment.
+        </p>
       </div>
     </footer>
   );

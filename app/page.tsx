@@ -91,6 +91,7 @@ export default function LandingPage() {
   };
 
   const regions = new Set(findings.map((f) => f.label.split(" ")[0]));
+  const price = config.stripe.plans[0]?.price ?? 29;
 
   return (
     <>
@@ -98,9 +99,9 @@ export default function LandingPage() {
       <Header />
 
       <main>
-        {/* ══ HERO SECTION ══ */}
+        {/* ══ 1. HERO ══ */}
         <section className="relative overflow-hidden bg-[var(--color-surface)]">
-          {/* Animated CSS spine/brain illustration */}
+          {/* Background decorative elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <svg
               viewBox="0 0 800 600"
@@ -118,26 +119,23 @@ export default function LandingPage() {
                 <ellipse key={y} cx="400" cy={y} rx="20" ry="8" opacity="0.4" className="animate-[surface-breathe_3s_ease-in-out_infinite]" />
               ))}
             </svg>
-            {/* Ambient primary glow — top right */}
             <div
               className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full"
-              style={{
-                background: "radial-gradient(circle, rgba(77, 142, 255, 0.08) 0%, transparent 70%)",
-              }}
+              style={{ background: "radial-gradient(circle, rgba(77, 142, 255, 0.08) 0%, transparent 70%)" }}
             />
-            {/* Ambient glow — bottom left */}
             <div
               className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full"
-              style={{
-                background: "radial-gradient(circle, rgba(173, 198, 255, 0.04) 0%, transparent 70%)",
-              }}
+              style={{ background: "radial-gradient(circle, rgba(173, 198, 255, 0.04) 0%, transparent 70%)" }}
             />
           </div>
 
           <div className="relative max-w-7xl mx-auto px-8 py-20 md:py-32">
             <div className="text-center max-w-3xl mx-auto space-y-6">
+              <span className="label-md px-4 py-1.5 rounded-sm bg-[var(--color-surface-high)] text-[var(--color-rm-primary)] ghost-border inline-block">
+                Powered by Claude AI
+              </span>
               <h1 className="headline-lg text-4xl md:text-6xl">
-                Your MRI.{" "}
+                Medical Scans.{" "}
                 <span className="gradient-text-primary">Understood.</span>
               </h1>
               <p className="text-lg md:text-xl text-[var(--color-rm-on-surface-dim)] max-w-2xl mx-auto" style={{ lineHeight: 1.6 }}>
@@ -146,81 +144,129 @@ export default function LandingPage() {
               </p>
 
               {!previewImage && (
-                <a
-                  href="#upload"
-                  className="btn btn-primary btn-lg inline-flex gap-2"
-                >
-                  Analyse My MRI Free
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-5 h-5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="m19.5 8.25-7.5 7.5-7.5-7.5"
-                    />
-                  </svg>
-                </a>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <a href="#upload" className="btn btn-primary btn-lg inline-flex gap-2">
+                    Analyse My Scan
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </a>
+                  <a href="#how-it-works" className="btn btn-ghost btn-lg">
+                    See How It Works
+                  </a>
+                </div>
               )}
             </div>
 
-            {/* Upload Widget / Preview */}
+            {/* Diagnostic viewport with Upload / Preview */}
             <div id="upload" className="mt-20 max-w-2xl mx-auto">
-              {previewImage ? (
-                <div className="relative">
-                  <PreviewViewer
-                    imageDataUrl={previewImage}
-                    findings={findings}
-                    imageWidth={imageDimensions.width}
-                    imageHeight={imageDimensions.height}
-                  />
-                  <PaywallOverlay
-                    findingCount={findings.length}
-                    regionCount={regions.size}
-                    highestSeverity={
-                      findings.length > 0
-                        ? (["severe", "moderate", "mild", "normal"].find((s) =>
-                            findings.some((f) => f.severity === s)
-                          ) || "normal")
-                        : "normal"
-                    }
-                    onCheckout={handleCheckout}
-                    isCheckoutLoading={isCheckoutLoading}
-                  />
+              <div className="relative rounded-sm overflow-hidden mri-gradient">
+                {/* HUD overlay text */}
+                <div className="absolute inset-0 pointer-events-none z-10 p-4">
+                  <div className="flex justify-between items-start">
+                    <span className="label-sm text-[var(--color-rm-on-surface-faint)]">MODALITY: MRI</span>
+                    <span className="label-sm text-[var(--color-rm-on-surface-faint)]">RADIOMETRIC v1.0</span>
+                  </div>
+                  <div className="absolute bottom-4 left-4">
+                    <span className="label-sm text-[var(--color-rm-on-surface-faint)]">AWAITING INPUT</span>
+                  </div>
+                  {/* Corner brackets */}
+                  <div className="absolute top-2 left-2 w-4 h-4 border-l border-t border-[var(--color-outline-variant)]/30" />
+                  <div className="absolute top-2 right-2 w-4 h-4 border-r border-t border-[var(--color-outline-variant)]/30" />
+                  <div className="absolute bottom-2 left-2 w-4 h-4 border-l border-b border-[var(--color-outline-variant)]/30" />
+                  <div className="absolute bottom-2 right-2 w-4 h-4 border-r border-b border-[var(--color-outline-variant)]/30" />
                 </div>
-              ) : (
-                <>
-                  <UploadZone
-                    onFilesLoaded={handleFilesLoaded}
-                    isLoading={isAnalysing}
-                  />
-                  <p className="text-center mt-4">
-                    <button
-                      className="label-sm hover:text-[var(--color-rm-primary)] transition-colors"
-                      onClick={() => {
-                        alert("Demo scan coming soon! Upload your own .dcm files for now.");
-                      }}
-                    >
-                      Or try a demo scan
-                    </button>
-                  </p>
-                </>
+
+                {previewImage ? (
+                  <div className="relative">
+                    <PreviewViewer
+                      imageDataUrl={previewImage}
+                      findings={findings}
+                      imageWidth={imageDimensions.width}
+                      imageHeight={imageDimensions.height}
+                    />
+                    <PaywallOverlay
+                      findingCount={findings.length}
+                      regionCount={regions.size}
+                      highestSeverity={
+                        findings.length > 0
+                          ? (["severe", "moderate", "mild", "normal"].find((s) =>
+                              findings.some((f) => f.severity === s)
+                            ) || "normal")
+                          : "normal"
+                      }
+                      onCheckout={handleCheckout}
+                      isCheckoutLoading={isCheckoutLoading}
+                    />
+                  </div>
+                ) : (
+                  <div className="relative z-20">
+                    <UploadZone
+                      onFilesLoaded={handleFilesLoaded}
+                      isLoading={isAnalysing}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {!previewImage && (
+                <p className="text-center mt-4">
+                  <button
+                    className="label-sm hover:text-[var(--color-rm-primary)] transition-colors"
+                    onClick={() => {
+                      alert("Demo scan coming soon! Upload your own .dcm files for now.");
+                    }}
+                  >
+                    Or try a demo scan
+                  </button>
+                </p>
               )}
             </div>
           </div>
         </section>
 
-        {/* ══ HOW IT WORKS ══ */}
-        <section className="py-24 bg-[var(--color-surface-low)]">
+        {/* ══ 2. SOCIAL PROOF BAR ══ */}
+        <section className="py-12 bg-[var(--color-surface-container-lowest)] border-y border-[var(--color-outline-variant)]/10">
           <div className="max-w-5xl mx-auto px-8">
-            <h2 className="headline-lg text-3xl text-center mb-4">
-              How It Works
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+              {[
+                { value: "< 2 min", label: "Average analysis time" },
+                { value: "50+", label: "Anomaly types detected" },
+                { value: "DICOM", label: "Industry-standard format" },
+              ].map((stat) => (
+                <div key={stat.label}>
+                  <p className="text-2xl font-bold font-[family-name:var(--font-space-grotesk)] text-[var(--color-rm-primary)]">
+                    {stat.value}
+                  </p>
+                  <p className="text-sm text-[var(--color-rm-on-surface-dim)] mt-1">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══ 3. THE PROBLEM ══ */}
+        <section id="problem" className="py-24 bg-[var(--color-surface)]">
+          <div className="max-w-3xl mx-auto px-8 text-center space-y-6">
+            <h2 className="headline-lg text-3xl md:text-4xl">
+              Waiting weeks for results is{" "}
+              <span className="gradient-text-primary">stressful</span>
             </h2>
+            <p className="text-[var(--color-rm-on-surface-dim)] text-lg max-w-xl mx-auto" style={{ lineHeight: 1.7 }}>
+              You&apos;ve had your scan. The CD sits on your desk. Your doctor appointment
+              is days away. The anxiety of not knowing is worse than the scan itself.
+            </p>
+            <p className="text-[var(--color-rm-on-surface-dim)] max-w-xl mx-auto" style={{ lineHeight: 1.7 }}>
+              Radiometric AI gives you an instant preliminary analysis so you can walk
+              into your appointment informed &mdash; not anxious.
+            </p>
+          </div>
+        </section>
+
+        {/* ══ 4. HOW IT WORKS ══ */}
+        <section id="how-it-works" className="py-24 bg-[var(--color-surface-low)]">
+          <div className="max-w-5xl mx-auto px-8">
+            <h2 className="headline-lg text-3xl text-center mb-4">How It Works</h2>
             <p className="text-center text-[var(--color-rm-on-surface-dim)] mb-16 max-w-lg mx-auto">
               Three steps from upload to a complete diagnostic report.
             </p>
@@ -228,31 +274,19 @@ export default function LandingPage() {
               {[
                 {
                   step: "01",
-                  icon: (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                    </svg>
-                  ),
+                  icon: "upload_file",
                   title: "Upload",
                   desc: "Drag in your DICOM files from your CD or USB drive.",
                 },
                 {
                   step: "02",
-                  icon: (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                    </svg>
-                  ),
+                  icon: "biotech",
                   title: "Analyse",
                   desc: "Our AI reviews every slice and flags anomalies with severity ratings.",
                 },
                 {
                   step: "03",
-                  icon: (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                    </svg>
-                  ),
+                  icon: "description",
                   title: "Share",
                   desc: "Download a professional letter for your doctor with all findings.",
                 },
@@ -261,12 +295,11 @@ export default function LandingPage() {
                   key={item.step}
                   className="relative p-6 rounded-sm bg-[var(--color-surface)] ghost-border tonal-shift group"
                 >
-                  {/* Step number — Space Grotesk, faint */}
                   <span className="absolute top-4 right-4 font-[family-name:var(--font-space-grotesk)] text-[var(--color-rm-on-surface-faint)] text-xs font-bold tracking-widest">
                     {item.step}
                   </span>
                   <div className="w-12 h-12 rounded-sm bg-[var(--color-surface-high)] flex items-center justify-center text-[var(--color-rm-primary)] mb-5">
-                    {item.icon}
+                    <span className="material-symbols-outlined">{item.icon}</span>
                   </div>
                   <h3 className="title-sm text-lg font-bold mb-2">{item.title}</h3>
                   <p className="text-sm text-[var(--color-rm-on-surface-dim)]" style={{ lineHeight: 1.6 }}>{item.desc}</p>
@@ -276,79 +309,260 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ══ PRICING ══ */}
-        <section id="pricing" className="py-24 bg-[var(--color-surface)]">
-          <div className="max-w-lg mx-auto px-8">
-            <h2 className="headline-lg text-3xl text-center mb-4">
-              Simple Pricing
-            </h2>
-            <p className="text-center text-[var(--color-rm-on-surface-dim)] mb-12">
-              One-time payment per study. No subscriptions.
+        {/* ══ 5. FREE vs PAID ══ */}
+        <section className="py-24 bg-[var(--color-surface)]">
+          <div className="max-w-4xl mx-auto px-8">
+            <h2 className="headline-lg text-3xl text-center mb-4">Free Preview vs Full Analysis</h2>
+            <p className="text-center text-[var(--color-rm-on-surface-dim)] mb-12 max-w-lg mx-auto">
+              Get started free. Upgrade when you need the complete picture.
             </p>
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Free tier */}
+              <div className="p-8 rounded-sm bg-[var(--color-surface-low)] ghost-border">
+                <div className="space-y-6">
+                  <div>
+                    <p className="label-md mb-2">Free Preview</p>
+                    <p className="text-4xl font-extrabold font-[family-name:var(--font-space-grotesk)] text-[var(--color-rm-on-surface)]">$0</p>
+                  </div>
+                  <ul className="space-y-3 text-sm">
+                    {[
+                      { text: "Upload any DICOM file", included: true },
+                      { text: "AI-powered anomaly detection", included: true },
+                      { text: "Blurred preview of findings", included: true },
+                      { text: "Full resolution viewer", included: false },
+                      { text: "Doctor's letter PDF", included: false },
+                    ].map((feat) => (
+                      <li key={feat.text} className={`flex items-center gap-3 ${feat.included ? "text-[var(--color-rm-on-surface-dim)]" : "text-[var(--color-rm-on-surface-faint)] line-through"}`}>
+                        {feat.included ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-[var(--color-severity-normal)] shrink-0">
+                            <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 shrink-0 opacity-40">
+                            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                          </svg>
+                        )}
+                        {feat.text}
+                      </li>
+                    ))}
+                  </ul>
+                  <a href="#upload" className="btn btn-ghost btn-block">Upload Free</a>
+                </div>
+              </div>
 
-            <div className="relative p-8 rounded-sm bg-[var(--color-surface-low)] ghost-border">
-              {/* Ambient glow behind the card */}
-              <div
-                className="absolute -inset-1 rounded-sm -z-10"
-                style={{
-                  background: "radial-gradient(ellipse at center, rgba(77, 142, 255, 0.08) 0%, transparent 70%)",
-                }}
-              />
-
-              <div className="text-center space-y-6">
-                <span className="severity-badge bg-[var(--color-rm-primary-container)] text-white">
-                  Most Popular
+              {/* Paid tier */}
+              <div className="relative p-8 rounded-sm bg-[var(--color-surface-low)] ghost-border">
+                <div className="absolute -inset-[1px] rounded-sm -z-10" style={{ background: "radial-gradient(ellipse at center, rgba(77, 142, 255, 0.12) 0%, transparent 70%)" }} />
+                <span className="severity-badge bg-[var(--color-rm-primary-container)] text-white absolute top-4 right-4">
+                  Recommended
                 </span>
-                <h3 className="title-sm text-xl font-bold">{config.stripe.plans[0]?.name || "Full MRI Analysis"}</h3>
-                <p>
-                  <span className="text-5xl font-extrabold text-[var(--color-rm-on-surface)] font-[family-name:var(--font-space-grotesk)]">${config.stripe.plans[0]?.price ?? 29}</span>
-                  <span className="text-sm text-[var(--color-rm-on-surface-faint)] ml-2">/ study</span>
-                </p>
-
-                <ul className="text-left space-y-3 max-w-xs mx-auto">
-                  {(config.stripe.plans[0]?.features ?? []).map(({ name: feature }) => (
-                    <li key={feature} className="flex items-center gap-3 text-sm text-[var(--color-rm-on-surface-dim)]">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        className="w-4 h-4 text-[var(--color-rm-primary)] shrink-0"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                <a href="#upload" className="btn btn-primary btn-block btn-lg mt-4">
-                  Unlock Full Analysis
-                </a>
+                <div className="space-y-6">
+                  <div>
+                    <p className="label-md mb-2">Full Analysis</p>
+                    <p className="text-4xl font-extrabold font-[family-name:var(--font-space-grotesk)] text-[var(--color-rm-on-surface)]">
+                      ${price}<span className="text-sm font-normal text-[var(--color-rm-on-surface-faint)] ml-1">/ study</span>
+                    </p>
+                  </div>
+                  <ul className="space-y-3 text-sm">
+                    {(config.stripe.plans[0]?.features ?? []).map(({ name: feature }) => (
+                      <li key={feature} className="flex items-center gap-3 text-[var(--color-rm-on-surface-dim)]">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-[var(--color-rm-primary)] shrink-0">
+                          <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                        </svg>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                  <a href="#upload" className="btn btn-primary btn-block">Get Full Analysis</a>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ══ TRUST SECTION ══ */}
-        <section className="py-20 bg-[var(--color-surface-low)]">
-          <div className="max-w-3xl mx-auto px-8 text-center space-y-6">
-            <div className="flex items-center justify-center gap-3">
-              <span className="label-md px-4 py-1.5 rounded-sm bg-[var(--color-surface-high)] text-[var(--color-rm-primary)] ghost-border">
-                Powered by Claude AI
+        {/* ══ 6. FEATURE DEEP-DIVE ══ */}
+        <section className="py-24 bg-[var(--color-surface-low)]">
+          <div className="max-w-5xl mx-auto px-8">
+            <h2 className="headline-lg text-3xl text-center mb-4">What You Get</h2>
+            <p className="text-center text-[var(--color-rm-on-surface-dim)] mb-16 max-w-lg mx-auto">
+              A comprehensive analysis powered by state-of-the-art medical imaging AI.
+            </p>
+            <div className="grid md:grid-cols-2 gap-6">
+              {[
+                {
+                  icon: "visibility",
+                  title: "Full Resolution DICOM Viewer",
+                  desc: "Navigate every slice of your scan with clinical-grade rendering. Zoom, pan, and window/level controls included.",
+                },
+                {
+                  icon: "target",
+                  title: "Anomaly Detection & Severity",
+                  desc: "Each finding is marked with a bounding box and classified as severe, moderate, mild, or normal.",
+                },
+                {
+                  icon: "clinical_notes",
+                  title: "Doctor's Letter PDF",
+                  desc: "A professionally formatted report you can print and bring to your appointment. Includes all findings and measurements.",
+                },
+                {
+                  icon: "lock",
+                  title: "Secure Cloud Storage",
+                  desc: "Your study is encrypted and stored permanently in your personal dashboard. Access it anytime from any device.",
+                },
+              ].map((feat) => (
+                <div key={feat.title} className="p-6 rounded-sm bg-[var(--color-surface)] ghost-border">
+                  <div className="w-10 h-10 rounded-sm bg-[var(--color-surface-high)] flex items-center justify-center text-[var(--color-rm-primary)] mb-4">
+                    <span className="material-symbols-outlined text-xl">{feat.icon}</span>
+                  </div>
+                  <h3 className="title-sm text-lg font-bold mb-2">{feat.title}</h3>
+                  <p className="text-sm text-[var(--color-rm-on-surface-dim)]" style={{ lineHeight: 1.6 }}>{feat.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══ 7. WHO THIS IS FOR ══ */}
+        <section className="py-24 bg-[var(--color-surface)]">
+          <div className="max-w-5xl mx-auto px-8">
+            <h2 className="headline-lg text-3xl text-center mb-4">Who This Is For</h2>
+            <p className="text-center text-[var(--color-rm-on-surface-dim)] mb-16 max-w-lg mx-auto">
+              Anyone with a medical scan and a desire to understand it.
+            </p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { icon: "person", title: "Patients", desc: "Understand your own scan before your appointment." },
+                { icon: "family_restroom", title: "Caregivers", desc: "Help a loved one make sense of their results." },
+                { icon: "stethoscope", title: "Physicians", desc: "Quick second-look triage for busy practices." },
+                { icon: "school", title: "Students", desc: "Study real DICOM scans with AI-assisted annotations." },
+              ].map((persona) => (
+                <div key={persona.title} className="p-6 rounded-sm bg-[var(--color-surface-low)] ghost-border text-center">
+                  <div className="w-12 h-12 rounded-full bg-[var(--color-surface-high)] flex items-center justify-center text-[var(--color-rm-primary)] mx-auto mb-4">
+                    <span className="material-symbols-outlined">{persona.icon}</span>
+                  </div>
+                  <h3 className="title-sm font-bold mb-2">{persona.title}</h3>
+                  <p className="text-sm text-[var(--color-rm-on-surface-dim)]" style={{ lineHeight: 1.5 }}>{persona.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══ 8. PRICING CTA ══ */}
+        <section id="pricing" className="py-24 bg-[var(--color-surface-low)]">
+          <div className="max-w-lg mx-auto px-8 text-center space-y-8">
+            <h2 className="headline-lg text-3xl">Simple, One-Time Pricing</h2>
+            <p>
+              <span className="text-6xl font-extrabold text-[var(--color-rm-on-surface)] font-[family-name:var(--font-space-grotesk)]">${price}</span>
+              <span className="text-sm text-[var(--color-rm-on-surface-faint)] ml-2">per study</span>
+            </p>
+            <p className="text-[var(--color-rm-on-surface-dim)]">
+              No subscription. No hidden fees. Pay only when you need a full analysis.
+            </p>
+            <a href="#upload" className="btn btn-primary btn-lg">
+              Upload &amp; Analyse Now
+            </a>
+            <div className="flex items-center justify-center gap-6 mt-6">
+              <span className="label-sm flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-base text-[var(--color-rm-primary)]">credit_card</span>
+                Stripe Secure
+              </span>
+              <span className="label-sm flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-base text-[var(--color-rm-primary)]">bolt</span>
+                Instant Access
               </span>
             </div>
-            <p className="text-[var(--color-rm-on-surface-dim)] max-w-xl mx-auto" style={{ lineHeight: 1.7 }}>
-              Free-tier scans are processed in memory only &mdash; nothing is
-              stored on our servers. Your privacy is our priority.
-            </p>
-            <p className="text-xs text-[var(--color-rm-on-surface-faint)] max-w-xl mx-auto">
-              For informational purposes only. Not a substitute for professional
-              medical advice. Always consult a qualified medical professional for
-              diagnosis and treatment.
+          </div>
+        </section>
+
+        {/* ══ 9. SECURITY & PRIVACY ══ */}
+        <section className="py-24 bg-[var(--color-surface)]">
+          <div className="max-w-5xl mx-auto px-8">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6">
+                <h2 className="headline-lg text-3xl">Your Data. Your Control.</h2>
+                <p className="text-[var(--color-rm-on-surface-dim)]" style={{ lineHeight: 1.7 }}>
+                  Free-tier scans are processed in-memory only &mdash; nothing is stored on our servers.
+                  Paid analyses are encrypted at rest and in transit, stored in your private dashboard.
+                </p>
+                <p className="text-[var(--color-rm-on-surface-dim)]" style={{ lineHeight: 1.7 }}>
+                  You can delete your data at any time. We never share your medical information with third parties.
+                </p>
+              </div>
+              <div className="p-6 rounded-sm bg-[var(--color-surface-low)] ghost-border space-y-4">
+                {[
+                  { icon: "encrypted", label: "AES-256 encryption at rest" },
+                  { icon: "https", label: "TLS 1.3 in transit" },
+                  { icon: "delete_forever", label: "Delete anytime from dashboard" },
+                  { icon: "visibility_off", label: "No third-party data sharing" },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-[var(--color-rm-primary)]">{item.icon}</span>
+                    <span className="text-sm text-[var(--color-rm-on-surface-dim)]">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══ 10. FAQ ══ */}
+        <section id="faq" className="py-24 bg-[var(--color-surface-low)]">
+          <div className="max-w-3xl mx-auto px-8">
+            <h2 className="headline-lg text-3xl text-center mb-12">Frequently Asked Questions</h2>
+            <div className="space-y-4">
+              {[
+                {
+                  q: "What file formats do you accept?",
+                  a: "We accept standard DICOM (.dcm) files — the format used by virtually all MRI, CT, and X-ray machines. You'll typically find these on the CD or USB drive given to you after your scan.",
+                },
+                {
+                  q: "Is this a medical diagnosis?",
+                  a: "No. Radiometric AI provides a preliminary AI-assisted analysis for informational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider.",
+                },
+                {
+                  q: "How is my data protected?",
+                  a: "Free scans are processed in-memory and never stored. Paid analyses are encrypted with AES-256 at rest and TLS 1.3 in transit. You can delete your data at any time from your dashboard.",
+                },
+              ].map((faq) => (
+                <details key={faq.q} className="group rounded-sm bg-[var(--color-surface)] ghost-border">
+                  <summary className="flex items-center justify-between p-5 cursor-pointer">
+                    <span className="title-sm font-bold text-[var(--color-rm-on-surface)]">{faq.q}</span>
+                    <span className="material-symbols-outlined text-[var(--color-rm-on-surface-faint)] transition-transform group-open:rotate-180">
+                      expand_more
+                    </span>
+                  </summary>
+                  <div className="px-5 pb-5 text-sm text-[var(--color-rm-on-surface-dim)]" style={{ lineHeight: 1.7 }}>
+                    {faq.a}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══ 11. FINAL CTA ══ */}
+        <section className="py-24 bg-[var(--color-surface)]">
+          <div className="max-w-3xl mx-auto px-8 text-center space-y-8">
+            <h2 className="headline-lg text-3xl md:text-4xl">
+              You already have the scan.
+              <br />
+              <span className="gradient-text-primary">Now understand it.</span>
+            </h2>
+            <a href="#upload" className="btn btn-primary btn-lg">
+              Upload Your Scan Free
+            </a>
+          </div>
+        </section>
+
+        {/* ══ 12. MEDICAL DISCLAIMER ══ */}
+        <section className="py-8 bg-[var(--color-surface-container-lowest)]">
+          <div className="max-w-3xl mx-auto px-8">
+            <p className="text-[0.625rem] text-[var(--color-rm-on-surface-faint)] text-center" style={{ lineHeight: 1.6 }}>
+              <strong>Medical Disclaimer:</strong> Radiometric AI is for informational purposes only and does not provide medical advice,
+              diagnosis, or treatment. The AI analysis is a preliminary screening tool and should not replace consultation with a qualified
+              healthcare professional. Always seek the advice of your physician or other qualified health provider with any questions
+              regarding a medical condition.
             </p>
           </div>
         </section>
