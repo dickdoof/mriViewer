@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/libs/supabase/client";
+import config from "@/config";
+import { getBestActiveDiscount, applyDiscount, type Discount } from "@/libs/discounts";
 
 interface PaywallOverlayProps {
   findingCount: number;
@@ -27,6 +29,14 @@ export default function PaywallOverlay({
 }: PaywallOverlayProps) {
   const supabase = createClient();
   const [checkingAuth, setCheckingAuth] = useState(false);
+  const [activeDiscount, setActiveDiscount] = useState<Discount | null>(null);
+
+  const basePrice = config.stripe.plans[0]?.price ?? 29;
+  const finalPrice = activeDiscount ? applyDiscount(basePrice, activeDiscount) : basePrice;
+
+  useEffect(() => {
+    setActiveDiscount(getBestActiveDiscount());
+  }, []);
 
   const handleUnlock = async () => {
     setCheckingAuth(true);
@@ -98,6 +108,16 @@ export default function PaywallOverlay({
           </div>
         </div>
 
+        {/* Discount badge */}
+        {activeDiscount && (
+          <div className="w-full mb-4 flex items-center justify-center gap-2 py-2 text-[0.7rem] font-[family-name:var(--font-data)] font-bold"
+            style={{ backgroundColor: `${activeDiscount.theme.badgeColor}20`, color: activeDiscount.theme.badgeColor }}
+          >
+            <span className="material-symbols-outlined text-sm">local_offer</span>
+            {activeDiscount.theme.label}: {activeDiscount.percentOff}% OFF with code {activeDiscount.code}
+          </div>
+        )}
+
         {/* CTA */}
         <button
           onClick={handleUnlock}
@@ -106,8 +126,14 @@ export default function PaywallOverlay({
         >
           {isLoading ? (
             <span className="loading loading-spinner loading-sm"></span>
+          ) : activeDiscount ? (
+            <>
+              Unlock Full Report &mdash;{" "}
+              <span className="line-through opacity-60">${basePrice}</span>{" "}
+              ${finalPrice}
+            </>
           ) : (
-            "Unlock Full Report \u2014 $29"
+            `Unlock Full Report \u2014 $${basePrice}`
           )}
         </button>
 

@@ -2,10 +2,12 @@
 
 import { useState, useCallback } from "react";
 import Header from "@/components/Header";
+import DiscountBanner from "@/components/DiscountBanner";
 import Footer from "@/components/Footer";
 import UploadZone from "@/components/UploadZone";
 import PreviewViewer from "@/components/PreviewViewer";
 import PaywallOverlay from "@/components/PaywallOverlay";
+import config from "@/config";
 import type { Finding } from "@/libs/annotate";
 
 interface DicomFile {
@@ -92,6 +94,7 @@ export default function LandingPage() {
 
   return (
     <>
+      <DiscountBanner />
       <Header />
 
       <main>
@@ -296,21 +299,14 @@ export default function LandingPage() {
                 <span className="severity-badge bg-[var(--color-rm-primary-container)] text-white">
                   Most Popular
                 </span>
-                <h3 className="title-sm text-xl font-bold">Full MRI Analysis</h3>
+                <h3 className="title-sm text-xl font-bold">{config.stripe.plans[0]?.name || "Full MRI Analysis"}</h3>
                 <p>
-                  <span className="text-5xl font-extrabold text-[var(--color-rm-on-surface)] font-[family-name:var(--font-space-grotesk)]">$29</span>
+                  <span className="text-5xl font-extrabold text-[var(--color-rm-on-surface)] font-[family-name:var(--font-space-grotesk)]">${config.stripe.plans[0]?.price ?? 29}</span>
                   <span className="text-sm text-[var(--color-rm-on-surface-faint)] ml-2">/ study</span>
                 </p>
 
                 <ul className="text-left space-y-3 max-w-xs mx-auto">
-                  {[
-                    "Full resolution DICOM viewer",
-                    "All findings with severity ratings",
-                    "Slice-by-slice navigation",
-                    "Brightness & contrast controls",
-                    "Doctor\u2019s letter PDF download",
-                    "Permanent secure storage",
-                  ].map((feature) => (
+                  {(config.stripe.plans[0]?.features ?? []).map(({ name: feature }) => (
                     <li key={feature} className="flex items-center gap-3 text-sm text-[var(--color-rm-on-surface-dim)]">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"

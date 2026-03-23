@@ -1,0 +1,26 @@
+[
+  {
+    "code": "LAUNCH25",
+    "percentOff": 25,
+    "theme": {
+      "label": "Launch Special",
+      "badgeColor": "#4d8eff",
+      "badgeText": "#ffffff",
+      "bannerMessage": "Use code **LAUNCH25** for 25% off your first analysis"
+    },
+    "startDate": "2025-11-01T00:00:00Z",
+    "endDate": "2026-06-30T23:59:59Z"
+  },
+  {
+    "code": "SUMMER50",
+    "percentOff": 50,
+    "theme": {
+      "label": "Summer Sale",
+      "badgeColor": "#ff9100",
+      "badgeText": "#0c1324",
+      "bannerMessage": "Summer Sale! Use **SUMMER50** for 50% off"
+    },
+    "startDate": "2026-06-01T00:00:00Z",
+    "endDate": "2026-08-31T23:59:59Z"
+  }
+]
