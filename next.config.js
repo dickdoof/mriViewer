@@ -31,7 +31,29 @@ const nextConfig = {
       );
     }
 
+    // Handle WASM files for cornerstone3D
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+    };
+
+    // Fallback for node modules in browser
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+      };
+    }
+
     return config;
+  },
+  // Allow larger API request bodies for DICOM file uploads
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '50mb',
+    },
   },
 };
 

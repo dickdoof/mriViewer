@@ -1,52 +1,55 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/libs/supabase/client";
 import { Provider } from "@supabase/supabase-js";
 import toast from "react-hot-toast";
 import config from "@/config";
 
-// This a login/singup page for Supabase Auth.
-// Successfull login redirects to /api/auth/callback where the Code Exchange is processed (see app/api/auth/callback/route.js).
-export default function Login() {
+function LoginContent() {
   const supabase = createClient();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
+
   const [email, setEmail] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
 
   const handleSignup = async (
-    e: any,
+    e: React.FormEvent | React.MouseEvent,
     options: {
       type: string;
       provider?: Provider;
     }
   ) => {
     e?.preventDefault();
-
     setIsLoading(true);
 
     try {
       const { type, provider } = options;
-      const redirectURL = window.location.origin + "/api/auth/callback";
+      // Pass redirect param through auth callback
+      const callbackUrl = redirectTo
+        ? `${window.location.origin}/api/auth/callback?redirect=${encodeURIComponent(redirectTo)}`
+        : `${window.location.origin}/api/auth/callback`;
 
       if (type === "oauth") {
         await supabase.auth.signInWithOAuth({
-          provider,
+          provider: provider!,
           options: {
-            redirectTo: redirectURL,
+            redirectTo: callbackUrl,
           },
         });
       } else if (type === "magic_link") {
         await supabase.auth.signInWithOtp({
           email,
           options: {
-            emailRedirectTo: redirectURL,
+            emailRedirectTo: callbackUrl,
           },
         });
 
         toast.success("Check your emails!");
-
         setIsDisabled(true);
       }
     } catch (error) {
@@ -76,7 +79,7 @@ export default function Login() {
         </Link>
       </div>
       <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-center mb-12">
-        Sign-in to {config.appName}{" "}
+        Sign-in to {config.appName}
       </h1>
 
       <div className="space-y-8 max-w-xl mx-auto">
@@ -147,5 +150,19 @@ export default function Login() {
         </form>
       </div>
     </main>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex items-center justify-center">
+          <span className="loading loading-spinner loading-lg"></span>
+        </main>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }
