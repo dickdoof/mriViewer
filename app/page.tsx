@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import DiscountBanner from "@/components/DiscountBanner";
 import Footer from "@/components/Footer";
 import UploadZone from "@/components/UploadZone";
-import PreviewViewer from "@/components/PreviewViewer";
-import PaywallOverlay from "@/components/PaywallOverlay";
 import config from "@/config";
-import type { Finding } from "@/libs/annotate";
+import { storeDicomFiles } from "@/libs/dicomStore";
 
 interface DicomFile {
   file: File;
@@ -16,81 +15,22 @@ interface DicomFile {
 }
 
 export default function LandingPage() {
+  const router = useRouter();
   const [isAnalysing, setIsAnalysing] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [findings, setFindings] = useState<Finding[]>([]);
-  const [imageDimensions, setImageDimensions] = useState({
-    width: 512,
-    height: 512,
-  });
-  const [dicomFiles, setDicomFiles] = useState<DicomFile[]>([]);
-  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
   const handleFilesLoaded = useCallback(async (files: DicomFile[]) => {
     setIsAnalysing(true);
-    setDicomFiles(files);
-
     try {
-      const middleIndex = Math.floor(files.length / 2);
-      const middleFile = files[middleIndex];
-      const imageBase64 = await dicomToBase64(middleFile.arrayBuffer);
-
-      if (!imageBase64) {
-        console.error("Failed to convert DICOM to image");
-        setIsAnalysing(false);
-        return;
-      }
-
-      setPreviewImage(`data:image/png;base64,${imageBase64}`);
-
-      const response = await fetch("/api/annotate/preview", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64 }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setFindings(data.findings || []);
-      }
+      await storeDicomFiles(
+        files.map((f) => ({ name: f.file.name, arrayBuffer: f.arrayBuffer }))
+      );
+      router.push("/preview");
     } catch (err) {
-      console.error("Error during analysis:", err);
-    } finally {
+      console.error("Error storing files:", err);
       setIsAnalysing(false);
     }
-  }, []);
+  }, [router]);
 
-  const handleCheckout = async () => {
-    setIsCheckoutLoading(true);
-    try {
-      const tempStudyId = crypto.randomUUID();
-      sessionStorage.setItem(
-        "pendingStudy",
-        JSON.stringify({
-          tempStudyId,
-          fileCount: dicomFiles.length,
-          timestamp: Date.now(),
-        })
-      );
-
-      const response = await fetch("/api/payments/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tempStudyId }),
-      });
-
-      if (response.ok) {
-        const { url } = await response.json();
-        window.location.href = url;
-      }
-    } catch (err) {
-      console.error("Checkout error:", err);
-    } finally {
-      setIsCheckoutLoading(false);
-    }
-  };
-
-  const regions = new Set(findings.map((f) => f.label.split(" ")[0]));
   const price = config.stripe.plans[0]?.price ?? 29;
 
   return (
@@ -143,16 +83,14 @@ export default function LandingPage() {
                 Walk into your next appointment prepared with radiologist-grade insights.
               </p>
 
-              {!previewImage && (
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <a href="#upload" className="btn btn-primary btn-lg inline-flex gap-2">
-                    Start Your Scan Analysis
-                  </a>
-                  <a href="#how-it-works" className="btn btn-ghost btn-lg">
-                    View Sample Report
-                  </a>
-                </div>
-              )}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="#upload" className="btn btn-primary btn-lg inline-flex gap-2">
+                  Start Your Scan Analysis
+                </a>
+                <a href="#how-it-works" className="btn btn-ghost btn-lg">
+                  View Sample Report
+                </a>
+              </div>
             </div>
 
             {/* Diagnostic viewport with Upload / Preview */}
@@ -174,36 +112,12 @@ export default function LandingPage() {
                   <div className="absolute bottom-2 right-2 w-4 h-4 border-r border-b border-[var(--color-outline-variant)]/30" />
                 </div>
 
-                {previewImage ? (
-                  <div className="relative">
-                    <PreviewViewer
-                      imageDataUrl={previewImage}
-                      findings={findings}
-                      imageWidth={imageDimensions.width}
-                      imageHeight={imageDimensions.height}
-                    />
-                    <PaywallOverlay
-                      findingCount={findings.length}
-                      regionCount={regions.size}
-                      highestSeverity={
-                        findings.length > 0
-                          ? (["severe", "moderate", "mild", "normal"].find((s) =>
-                              findings.some((f) => f.severity === s)
-                            ) || "normal")
-                          : "normal"
-                      }
-                      onCheckout={handleCheckout}
-                      isCheckoutLoading={isCheckoutLoading}
-                    />
-                  </div>
-                ) : (
-                  <div className="relative z-20">
-                    <UploadZone
-                      onFilesLoaded={handleFilesLoaded}
-                      isLoading={isAnalysing}
-                    />
-                  </div>
-                )}
+                <div className="relative z-20">
+                  <UploadZone
+                    onFilesLoaded={handleFilesLoaded}
+                    isLoading={isAnalysing}
+                  />
+                </div>
               </div>
 
             </div>
@@ -562,87 +476,3 @@ export default function LandingPage() {
   );
 }
 
-/**
- * Convert DICOM ArrayBuffer to base64 PNG.
- */
-async function dicomToBase64(buffer: ArrayBuffer): Promise<string | null> {
-  try {
-    const dcmjs = await import("dcmjs");
-    const dicomData = dcmjs.data.DicomMessage.readFile(buffer);
-    const dataset = dcmjs.data.DicomMetaDictionary.naturalizeDataset(
-      dicomData.dict
-    );
-
-    const rows = dataset.Rows || 512;
-    const cols = dataset.Columns || 512;
-    const bitsAllocated = dataset.BitsAllocated || 16;
-    const pixelRepresentation = dataset.PixelRepresentation || 0;
-    const rescaleSlope = dataset.RescaleSlope || 1;
-    const rescaleIntercept = dataset.RescaleIntercept || 0;
-    const windowCenter = Array.isArray(dataset.WindowCenter)
-      ? dataset.WindowCenter[0]
-      : dataset.WindowCenter || 127;
-    const windowWidth = Array.isArray(dataset.WindowWidth)
-      ? dataset.WindowWidth[0]
-      : dataset.WindowWidth || 256;
-
-    const pixelDataElement = dataset.PixelData;
-    if (!pixelDataElement) return null;
-
-    let rawPixels: ArrayBuffer;
-    if (Array.isArray(pixelDataElement)) {
-      rawPixels = pixelDataElement[0];
-    } else if (pixelDataElement instanceof ArrayBuffer) {
-      rawPixels = pixelDataElement;
-    } else {
-      return null;
-    }
-
-    let pixelArray: Int16Array | Uint16Array | Uint8Array;
-    if (bitsAllocated === 16) {
-      pixelArray =
-        pixelRepresentation === 1
-          ? new Int16Array(rawPixels)
-          : new Uint16Array(rawPixels);
-    } else {
-      pixelArray = new Uint8Array(rawPixels);
-    }
-
-    const canvas = document.createElement("canvas");
-    canvas.width = cols;
-    canvas.height = rows;
-    const ctx = canvas.getContext("2d")!;
-    const imageData = ctx.createImageData(cols, rows);
-
-    const wc = Number(windowCenter);
-    const ww = Number(windowWidth);
-    const lower = wc - ww / 2;
-    const upper = wc + ww / 2;
-
-    for (let i = 0; i < pixelArray.length && i < rows * cols; i++) {
-      const hu = pixelArray[i] * rescaleSlope + rescaleIntercept;
-      let val: number;
-      if (hu <= lower) {
-        val = 0;
-      } else if (hu >= upper) {
-        val = 255;
-      } else {
-        val = ((hu - lower) / (upper - lower)) * 255;
-      }
-
-      const idx = i * 4;
-      imageData.data[idx] = val;
-      imageData.data[idx + 1] = val;
-      imageData.data[idx + 2] = val;
-      imageData.data[idx + 3] = 255;
-    }
-
-    ctx.putImageData(imageData, 0, 0);
-
-    const dataUrl = canvas.toDataURL("image/png");
-    return dataUrl.split(",")[1];
-  } catch (err) {
-    console.error("DICOM parsing error:", err);
-    return null;
-  }
-}
