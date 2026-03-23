@@ -37,16 +37,16 @@ const Footer = () => {
             <div className="label-md mb-4">Product</div>
             <div className="flex flex-col gap-2.5 text-sm">
               <Link href="/#how-it-works" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
-                How It Works
+                How it Works
               </Link>
               <Link href="/#pricing" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
                 Pricing
               </Link>
               <Link href="/#upload" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
-                DICOM Viewer
+                Sample Reports
               </Link>
-              <Link href="/blog" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
-                Blog
+              <Link href="/#upload" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
+                DICOM Viewer
               </Link>
             </div>
           </div>
@@ -56,20 +56,17 @@ const Footer = () => {
             <div className="label-md mb-4">Support</div>
             <div className="flex flex-col gap-2.5 text-sm">
               <Link href="/contact" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
+                Help Center
+              </Link>
+              <Link href="/contact" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
                 Contact Us
               </Link>
               <Link href="/#faq" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
                 FAQ
               </Link>
-              {config.resend.supportEmail && (
-                <a
-                  href={`mailto:${config.resend.supportEmail}`}
-                  target="_blank"
-                  className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors"
-                >
-                  Email Support
-                </a>
-              )}
+              <Link href="/#privacy" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
+                Security
+              </Link>
             </div>
           </div>
 
@@ -82,6 +79,12 @@ const Footer = () => {
               </Link>
               <Link href="/tos" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
                 Terms of Service
+              </Link>
+              <Link href="/privacy-policy" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
+                HIPAA Compliance
+              </Link>
+              <Link href="/tos" className="text-[var(--color-rm-on-surface-dim)] hover:text-[var(--color-rm-primary)] transition-colors">
+                Medical Disclaimer
               </Link>
             </div>
           </div>

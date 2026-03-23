@@ -13,9 +13,11 @@ export const getSEOTags = ({
   openGraph,
   canonicalUrlRelative,
   extraTags,
+  hreflangAlternates,
 }: Metadata & {
   canonicalUrlRelative?: string;
   extraTags?: Record<string, any>;
+  hreflangAlternates?: Record<string, string>;
 } = {}) => {
   return {
     // up to 50 characters (what does your app do for the user?) > your main should be here
@@ -36,7 +38,7 @@ export const getSEOTags = ({
       title: openGraph?.title || config.appName,
       description: openGraph?.description || config.appDescription,
       url: openGraph?.url || `https://${config.domainName}/`,
-      siteName: openGraph?.title || config.appName,
+      siteName: (typeof openGraph?.title === "string" ? openGraph.title : null) || config.appName,
       // If you add an opengraph-image.(jpg|jpeg|png|gif) image to the /app folder, you don't need the code below
       // images: [
       //   {
@@ -59,9 +61,15 @@ export const getSEOTags = ({
     },
 
     // If a canonical URL is given, we add it. The metadataBase will turn the relative URL into a fully qualified URL
-    ...(canonicalUrlRelative && {
-      alternates: { canonical: canonicalUrlRelative },
-    }),
+    // Also supports hreflang alternates for multilingual pages
+    ...(canonicalUrlRelative || hreflangAlternates
+      ? {
+          alternates: {
+            ...(canonicalUrlRelative && { canonical: canonicalUrlRelative }),
+            ...(hreflangAlternates && { languages: hreflangAlternates }),
+          },
+        }
+      : {}),
 
     // If you want to add extra tags, you can pass them here
     ...extraTags,
