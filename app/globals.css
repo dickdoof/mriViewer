@@ -244,6 +244,9 @@ progress::-webkit-progress-value {
 .gradient-primary {
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
 }
+.medical-gradient {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%);
+}
 .gradient-text-primary {
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
   -webkit-background-clip: text;
