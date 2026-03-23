@@ -4,31 +4,40 @@ interface FindingsPanelProps {
   findings: Finding[];
   selectedIndex?: number;
   onSelect?: (index: number) => void;
+  locked?: boolean;
 }
 
 const severityConfig: Record<
   string,
-  { badge: string; glow: string; label: string }
+  { emoji: string; label: string; borderColor: string; badgeBg: string; badgeText: string }
 > = {
   severe: {
-    badge: "severity-severe",
-    glow: "anomaly-glow-severe",
-    label: "Severe",
+    emoji: "\uD83D\uDD34",
+    label: "SEVERE",
+    borderColor: "#ff5451",
+    badgeBg: "#93000a",
+    badgeText: "#ffffff",
   },
   moderate: {
-    badge: "severity-moderate",
-    glow: "anomaly-glow-moderate",
-    label: "Moderate",
+    emoji: "\uD83D\uDFE0",
+    label: "MODERATE",
+    borderColor: "#ff9100",
+    badgeBg: "rgba(255,145,0,0.2)",
+    badgeText: "#ff9100",
   },
   mild: {
-    badge: "severity-mild",
-    glow: "anomaly-glow-mild",
-    label: "Mild",
+    emoji: "\uD83D\uDFE1",
+    label: "MILD",
+    borderColor: "#ffd700",
+    badgeBg: "rgba(255,215,0,0.15)",
+    badgeText: "#ffd700",
   },
   normal: {
-    badge: "severity-normal",
-    glow: "anomaly-glow-normal",
-    label: "Normal",
+    emoji: "\uD83D\uDFE2",
+    label: "NORMAL",
+    borderColor: "#69db7c",
+    badgeBg: "rgba(105,219,124,0.15)",
+    badgeText: "#69db7c",
   },
 };
 
@@ -36,49 +45,89 @@ export default function FindingsPanel({
   findings,
   selectedIndex,
   onSelect,
+  locked = false,
 }: FindingsPanelProps) {
   if (findings.length === 0) {
     return (
       <div className="p-6 text-center">
-        <p className="title-sm text-lg font-bold text-[var(--color-rm-on-surface-dim)]">No findings</p>
-        <p className="label-sm mt-1">No abnormalities were detected in this study.</p>
+        <p className="text-sm font-bold text-slate-400">No findings</p>
+        <p className="font-[family-name:var(--font-data)] text-[0.65rem] text-slate-500 mt-1">
+          No abnormalities were detected in this study.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-1">
-      <h3 className="label-md px-1 mb-3">
-        Findings <span className="value-readout">({findings.length})</span>
-      </h3>
-      {findings.map((finding, i) => {
-        const config = severityConfig[finding.severity] || severityConfig.normal;
-        const isSelected = selectedIndex === i;
+    <section>
+      {/* Section Header */}
+      <div className="font-['Space_Grotesk'] uppercase tracking-widest text-[0.65rem] text-slate-500 mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-sm">medical_services</span>
+          Clinical Findings
+        </div>
+        <span className="text-[0.6rem] bg-[#2e3447] px-1.5 py-0.5 border border-[#424754]/20">
+          {findings.length} TOTAL
+        </span>
+      </div>
 
-        return (
-          <div
-            key={i}
-            className={`
-              p-3 rounded-sm cursor-pointer transition-all
-              ${isSelected
-                ? `bg-[var(--color-surface-high)] ${config.glow}`
-                : "bg-[var(--color-surface-low)] hover:bg-[var(--color-surface-high)]"
-              }
-            `}
-            onClick={() => onSelect?.(i)}
-          >
-            <div className="flex items-start justify-between gap-2">
-              <h4 className="title-sm text-sm font-bold">{finding.label}</h4>
-              <span className={`severity-badge ${config.badge}`}>
-                {config.label}
-              </span>
+      {/* Findings List */}
+      <div className="space-y-3">
+        {findings.map((finding, i) => {
+          const config = severityConfig[finding.severity] || severityConfig.normal;
+          const isSelected = selectedIndex === i;
+
+          // Extract location from label (e.g., "L4-L5")
+          const locationMatch = finding.label.match(/[A-Z]\d+[\s-]*[A-Z]?\d*/i);
+          const location = locationMatch ? locationMatch[0].toUpperCase() : "";
+
+          return (
+            <div
+              key={i}
+              className={`bg-[#0c1324] p-3 border-l-2 transition-all ${
+                isSelected ? "shadow-lg shadow-black/20" : ""
+              } ${!locked ? "cursor-pointer hover:bg-[#0c1324]/80" : ""}`}
+              style={{ borderLeftColor: config.borderColor }}
+              onClick={() => !locked && onSelect?.(i)}
+            >
+              <div className="flex justify-between items-start mb-2">
+                <span
+                  className="text-[0.55rem] font-bold px-1.5 py-0.5 tracking-tighter"
+                  style={{ backgroundColor: config.badgeBg, color: config.badgeText }}
+                >
+                  {config.emoji} {config.label}
+                </span>
+                {location && (
+                  <span className="font-[family-name:var(--font-data)] text-[0.6rem] text-slate-500 uppercase">
+                    {location}
+                  </span>
+                )}
+              </div>
+
+              {locked ? (
+                <>
+                  <div className="text-xs font-semibold text-white/50 mb-1 flex items-center gap-1">
+                    <span className="tracking-tight">{"\u2588".repeat(15)}</span>
+                    <span className="material-symbols-outlined text-[10px]">lock</span>
+                  </div>
+                  <p className="text-[0.65rem] text-[#adc6ff] leading-relaxed font-medium">
+                    Unlock to read full description
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="text-xs font-semibold text-white mb-1">
+                    {finding.label}
+                  </div>
+                  <p className="text-[0.65rem] text-slate-400 leading-relaxed">
+                    {finding.description}
+                  </p>
+                </>
+              )}
             </div>
-            <p className="text-xs text-[var(--color-rm-on-surface-dim)] mt-1.5" style={{ lineHeight: 1.5 }}>
-              {finding.description}
-            </p>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

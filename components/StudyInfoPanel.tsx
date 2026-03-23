@@ -5,6 +5,7 @@ interface StudyInfo {
   description?: string;
   institution?: string;
   accession?: string;
+  radiologist?: string;
   seriesCount?: number;
   sliceCount?: number;
 }
@@ -15,34 +16,31 @@ interface StudyInfoPanelProps {
 
 export default function StudyInfoPanel({ study }: StudyInfoPanelProps) {
   const fields = [
-    { label: "Patient", value: study.patientName },
-    { label: "Study Date", value: study.studyDate },
     { label: "Modality", value: study.modality },
-    { label: "Description", value: study.description },
     { label: "Institution", value: study.institution },
-    { label: "Accession", value: study.accession },
+    { label: "Radiologist", value: study.radiologist },
+    { label: "Description", value: study.description },
     { label: "Series", value: study.seriesCount?.toString() },
     { label: "Total Slices", value: study.sliceCount?.toString() },
   ].filter((f) => f.value);
 
   return (
-    <div>
-      <h3 className="label-md px-1 mb-3">Study Info</h3>
-      <div className="space-y-0">
-        {fields.map((field, i) => (
+    <section>
+      <div className="font-['Space_Grotesk'] uppercase tracking-widest text-[0.65rem] text-slate-500 mb-3 flex items-center gap-2">
+        <span className="material-symbols-outlined text-sm">description</span>
+        Study Information
+      </div>
+      <div className="space-y-2">
+        {fields.map((field) => (
           <div
             key={field.label}
-            className={`flex justify-between py-2 px-2 rounded-sm ${
-              i % 2 === 1 ? "bg-[var(--color-surface-low)]" : ""
-            }`}
+            className="flex justify-between text-[0.7rem] py-1 border-b border-[#424754]/5"
           >
-            <span className="label-sm">{field.label}</span>
-            <span className="value-readout text-xs text-right max-w-[60%] truncate">
-              {field.value}
-            </span>
+            <span className="text-slate-500">{field.label}</span>
+            <span className="text-[#dce1fb] font-medium">{field.value}</span>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

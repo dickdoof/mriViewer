@@ -179,6 +179,13 @@ export default function LandingPage() {
                   <PaywallOverlay
                     findingCount={findings.length}
                     regionCount={regions.size}
+                    highestSeverity={
+                      findings.length > 0
+                        ? (["severe", "moderate", "mild", "normal"].find((s) =>
+                            findings.some((f) => f.severity === s)
+                          ) || "normal")
+                        : "normal"
+                    }
                     onCheckout={handleCheckout}
                     isCheckoutLoading={isCheckoutLoading}
                   />
