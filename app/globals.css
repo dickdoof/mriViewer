@@ -22,6 +22,16 @@
   --color-surface-variant: #2e3447;
   --color-surface-tint: #adc6ff;
 
+  /* ── Convenience Aliases (used across components) ── */
+  --color-surface-low: #151b2d;
+  --color-surface-high: #23293c;
+  --color-surface-highest: #2e3447;
+  --color-rm-primary: #adc6ff;
+  --color-rm-primary-container: #4d8eff;
+  --color-rm-on-surface: #dce1fb;
+  --color-rm-on-surface-dim: #8c909f;
+  --color-rm-on-surface-faint: #5a5e6d;
+
   --color-primary: #adc6ff;
   --color-primary-container: #4d8eff;
   --color-primary-fixed: #d8e2ff;

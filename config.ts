@@ -2,12 +2,12 @@ import { ConfigProps } from "./types/config";
 
 const config = {
   // REQUIRED
-  appName: "MRI Viewer",
+  appName: "Radiometric AI",
   // REQUIRED: a short description of your app for SEO tags (can be overwritten)
   appDescription:
-    "Upload your MRI scan and get an AI-powered analysis with findings highlighted — in minutes, not weeks.",
+    "Bringing diagnostic clarity to patients worldwide through advanced medical imaging AI.",
   // REQUIRED (no https://, not trialing slash at the end, just the naked domain)
-  domainName: "mriviewer.app",
+  domainName: "radiometric.ai",
   crisp: {
     id: "",
     onlyShowOnRoutes: ["/"],
@@ -39,9 +39,9 @@ const config = {
     cdn: "",
   },
   resend: {
-    fromNoReply: `MRI Viewer <noreply@mriviewer.app>`,
-    fromAdmin: `MRI Viewer <hello@mriviewer.app>`,
-    supportEmail: "support@mriviewer.app",
+    fromNoReply: `Radiometric AI <noreply@radiometric.ai>`,
+    fromAdmin: `Radiometric AI <hello@radiometric.ai>`,
+    supportEmail: "support@radiometric.ai",
   },
   colors: {
     theme: "dark",
