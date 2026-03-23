@@ -151,50 +151,53 @@ progress::-webkit-progress-value {
 }
 
 /* ══════════════════════════════════════════════════════════
-   Typography
+   Typography — wrapped in @layer components so Tailwind
+   utilities (font-size, color, etc.) can override them.
    ══════════════════════════════════════════════════════════ */
-.headline-lg {
-  font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  color: var(--color-on-surface);
-}
-.title-sm {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  color: var(--color-on-surface);
-}
-.label-md {
-  font-family: var(--font-data);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--color-on-surface-variant);
-}
-.label-sm {
-  font-family: var(--font-data);
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--color-on-surface-variant);
-}
-.value-readout {
-  font-family: var(--font-data);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-on-surface);
+@layer components {
+  .headline-lg {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--color-on-surface);
+  }
+  .title-sm {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--color-on-surface);
+  }
+  .label-md {
+    font-family: var(--font-data);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-on-surface-variant);
+  }
+  .label-sm {
+    font-family: var(--font-data);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--color-on-surface-variant);
+  }
+  .value-readout {
+    font-family: var(--font-data);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-on-surface);
+  }
 }
 
 /* ══════════════════════════════════════════════════════════
    Buttons
    ══════════════════════════════════════════════════════════ */
 .btn {
-  text-transform: capitalize !important;
+  text-transform: uppercase !important;
   border-radius: 0.25rem !important;
   font-family: var(--font-data);
   font-weight: 700;
@@ -225,30 +228,32 @@ progress::-webkit-progress-value {
 /* ══════════════════════════════════════════════════════════
    Glass & Special Surfaces
    ══════════════════════════════════════════════════════════ */
-.glass-panel {
-  background: rgba(35, 41, 60, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-.glass-panel-deep {
-  background: rgba(7, 13, 31, 0.80);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-}
-.mri-gradient {
-  background: radial-gradient(circle at center, rgba(77, 142, 255, 0.15) 0%, rgba(7, 13, 31, 1) 70%);
-}
-.gradient-primary {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
-}
-.medical-gradient {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%);
-}
-.gradient-text-primary {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+@layer components {
+  .glass-panel {
+    background: rgba(35, 41, 60, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .glass-panel-deep {
+    background: rgba(7, 13, 31, 0.80);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  .mri-gradient {
+    background: radial-gradient(circle at center, rgba(77, 142, 255, 0.15) 0%, rgba(7, 13, 31, 1) 70%);
+  }
+  .gradient-primary {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
+  }
+  .medical-gradient {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%);
+  }
+  .gradient-text-primary {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -265,6 +270,12 @@ progress::-webkit-progress-value {
    ══════════════════════════════════════════════════════════ */
 .ghost-border { outline: 1px solid rgba(66, 71, 84, 0.15); }
 .ghost-border-visible { outline: 1px solid rgba(66, 71, 84, 0.3); }
+.tonal-shift {
+  transition: background-color 0.2s ease;
+}
+.tonal-shift:hover {
+  background-color: var(--color-surface-high);
+}
 .viewport-void {
   background-color: var(--color-surface-container-lowest);
   outline: 1px solid rgba(66, 71, 84, 0.15);
@@ -274,19 +285,21 @@ progress::-webkit-progress-value {
 /* ══════════════════════════════════════════════════════════
    Severity Badges
    ══════════════════════════════════════════════════════════ */
-.severity-badge {
-  font-family: var(--font-data);
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 0.15rem 0.5rem;
-  border-radius: 0.125rem;
+@layer components {
+  .severity-badge {
+    font-family: var(--font-data);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.125rem;
+  }
+  .severity-severe { background-color: #93000a; color: #ffdad5; }
+  .severity-moderate { background-color: rgba(255, 179, 71, 0.2); color: var(--color-severity-moderate); }
+  .severity-mild { background-color: rgba(255, 215, 0, 0.15); color: var(--color-severity-mild); }
+  .severity-normal { background-color: rgba(105, 219, 124, 0.15); color: var(--color-severity-normal); }
 }
-.severity-severe { background-color: #93000a; color: #ffdad5; }
-.severity-moderate { background-color: rgba(255, 179, 71, 0.2); color: var(--color-severity-moderate); }
-.severity-mild { background-color: rgba(255, 215, 0, 0.15); color: var(--color-severity-mild); }
-.severity-normal { background-color: rgba(105, 219, 124, 0.15); color: var(--color-severity-normal); }
 
 /* ══════════════════════════════════════════════════════════
    Input Fields
