@@ -159,7 +159,7 @@ export default function PreviewPage() {
             disabled={isCheckoutLoading}
             className="px-3 py-1.5 border border-[#adc6ff]/40 text-[#adc6ff] font-[family-name:var(--font-data)] text-[0.7rem] uppercase tracking-wider hover:bg-[#adc6ff]/10 transition-colors disabled:opacity-50"
           >
-            {isCheckoutLoading ? "Loading..." : "Download Doctor's Letter"}
+            {isCheckoutLoading ? "Loading..." : "Unlock Full Report"}
           </button>
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-slate-400 cursor-pointer hover:text-white">settings</span>

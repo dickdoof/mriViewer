@@ -27,6 +27,7 @@ export default function DicomViewer({ slices, allFindings, navigateToSlice }: Di
   const [showFindings, setShowFindings] = useState(true);
   const [selectedFinding, setSelectedFinding] = useState<number | undefined>();
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -41,6 +42,7 @@ export default function DicomViewer({ slices, allFindings, navigateToSlice }: Di
   useEffect(() => {
     if (!currentUrl) return;
     setImageLoaded(false);
+    setImageError(false);
     cachedImageRef.current = null;
 
     const img = new Image();
@@ -48,6 +50,9 @@ export default function DicomViewer({ slices, allFindings, navigateToSlice }: Di
     img.onload = () => {
       cachedImageRef.current = img;
       setImageLoaded(true);
+    };
+    img.onerror = () => {
+      setImageError(true);
     };
     img.src = currentUrl;
   }, [currentUrl]);
@@ -234,10 +239,14 @@ export default function DicomViewer({ slices, allFindings, navigateToSlice }: Di
             </button>
           </label>
 
-          {/* Annotate with AI button */}
-          <button className="px-4 py-1.5 bg-[#2e3447] border border-[#adc6ff]/30 text-[#adc6ff] font-[family-name:var(--font-data)] text-[0.7rem] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#adc6ff]/5 transition-all">
+          {/* Annotate with AI — analysis already runs during upload */}
+          <button
+            disabled
+            title="AI analysis runs automatically during upload"
+            className="px-4 py-1.5 bg-[#2e3447] border border-[#424754]/20 text-slate-500 font-[family-name:var(--font-data)] text-[0.7rem] font-bold uppercase tracking-widest flex items-center gap-2 cursor-not-allowed opacity-60"
+          >
             <span className="material-symbols-outlined text-sm">auto_awesome</span>
-            Annotate with AI
+            Annotated
           </button>
         </div>
       </div>
@@ -273,9 +282,16 @@ export default function DicomViewer({ slices, allFindings, navigateToSlice }: Di
           )}
         </div>
 
-        {!imageLoaded && (
+        {!imageLoaded && !imageError && (
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="loading loading-spinner loading-lg text-[#adc6ff]"></span>
+          </div>
+        )}
+
+        {imageError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+            <span className="material-symbols-outlined text-3xl text-slate-500">broken_image</span>
+            <p className="text-sm text-slate-400">Failed to load slice {currentSlice + 1}</p>
           </div>
         )}
 

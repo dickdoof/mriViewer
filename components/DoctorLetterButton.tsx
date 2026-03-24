@@ -44,6 +44,7 @@ interface DoctorLetterButtonProps {
 
 export default function DoctorLetterButton({ studyId }: DoctorLetterButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState("en");
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export default function DoctorLetterButton({ studyId }: DoctorLetterButtonProps)
 
   const handleDownload = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const response = await fetch(
         `/api/report/${studyId}/letter?language=${language}`
@@ -66,9 +68,12 @@ export default function DoctorLetterButton({ studyId }: DoctorLetterButtonProps)
       if (response.ok) {
         const { url } = await response.json();
         window.open(url, "_blank");
+      } else {
+        setError("Failed to generate letter. Please try again.");
       }
     } catch (err) {
       console.error("Failed to generate letter:", err);
+      setError("Network error. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -121,6 +126,10 @@ export default function DoctorLetterButton({ studyId }: DoctorLetterButtonProps)
         )}
         Download Doctor&apos;s Letter
       </button>
+
+      {error && (
+        <p className="text-[0.65rem] text-red-400">{error}</p>
+      )}
     </div>
   );
 }

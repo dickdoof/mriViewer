@@ -43,7 +43,12 @@ export default function AnnotationOverlay({
   return (
     <div className="absolute inset-0 pointer-events-none">
       {findings.map((finding, i) => {
-        const [x, y, w, h] = finding.bbox;
+        const [rx, ry, rw, rh] = finding.bbox;
+        // Clamp bbox values to 0-1 range for safety
+        const x = Math.max(0, Math.min(1, rx));
+        const y = Math.max(0, Math.min(1, ry));
+        const w = Math.max(0, Math.min(1 - x, rw));
+        const h = Math.max(0, Math.min(1 - y, rh));
         const isSelected = selectedIndex === i;
         const colors = severityColors[finding.severity] || severityColors.normal;
 

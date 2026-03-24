@@ -160,9 +160,13 @@ export default async function ViewerPage({ params }: ViewerPageProps) {
 
           {/* Bottom actions */}
           <div className="p-4 flex flex-col gap-2 border-t border-[#424754]/10">
-            <button className="w-full flex items-center justify-center gap-2 py-3 bg-[#4d8eff] text-[#00285d] font-[family-name:var(--font-data)] font-bold text-[0.75rem] uppercase tracking-widest active:opacity-80 transition-all">
-              <span className="material-symbols-outlined text-sm">analytics</span>
-              Analyze Series
+            <button
+              disabled
+              title="AI analysis completed during upload"
+              className="w-full flex items-center justify-center gap-2 py-3 bg-[#4d8eff]/40 text-[#4d8eff]/60 font-[family-name:var(--font-data)] font-bold text-[0.75rem] uppercase tracking-widest cursor-not-allowed"
+            >
+              <span className="material-symbols-outlined text-sm">check_circle</span>
+              Analysis Complete
             </button>
             <div className="grid grid-cols-2 gap-2 mt-2">
               <div className="flex flex-col items-center py-2 text-slate-500 hover:bg-[#2e3447]/30 cursor-pointer">

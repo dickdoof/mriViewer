@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, Suspense } from "react";
+import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/libs/supabase/client";
 import { loadDicomFiles, clearDicomFiles } from "@/libs/dicomStore";
@@ -16,8 +16,13 @@ function ProcessingContent() {
   >("waiting");
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const isProcessingRef = useRef(false);
 
   const handlePaymentConfirmed = useCallback(async () => {
+    // Guard against double invocation from realtime + polling
+    if (isProcessingRef.current) return;
+    isProcessingRef.current = true;
+
     setStatus("uploading");
 
     try {
@@ -77,8 +82,12 @@ function ProcessingContent() {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to persist study");
+        let errorMsg = "Failed to persist study";
+        try {
+          const data = await response.json();
+          errorMsg = data.error || errorMsg;
+        } catch { /* response may not be JSON */ }
+        throw new Error(errorMsg);
       }
 
       const { studyId } = await response.json();

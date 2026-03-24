@@ -51,6 +51,9 @@ const config = {
     loginUrl: "/auth/login",
     callbackUrl: "/dashboard",
   },
+  ai: {
+    model: "claude-sonnet-4-20250514",
+  },
 } as ConfigProps;
 
 export default config;

@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import config from "@/config";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -33,7 +34,7 @@ export async function analyzeSlice(
   mediaType: "image/png" | "image/jpeg" = "image/png"
 ): Promise<AnnotationResult> {
   const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: config.ai?.model || "claude-sonnet-4-20250514",
     max_tokens: 1024,
     messages: [
       {
@@ -64,8 +65,25 @@ export async function analyzeSlice(
   const cleaned = text.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
 
   try {
-    const parsed = JSON.parse(cleaned) as AnnotationResult;
-    return parsed;
+    const parsed = JSON.parse(cleaned);
+
+    // Runtime validation: ensure findings is an array of valid objects
+    if (!parsed || !Array.isArray(parsed.findings)) {
+      return { findings: [] };
+    }
+
+    const validFindings: Finding[] = parsed.findings.filter(
+      (f: Record<string, unknown>) =>
+        typeof f.label === "string" &&
+        Array.isArray(f.bbox) &&
+        f.bbox.length === 4 &&
+        f.bbox.every((v: unknown) => typeof v === "number") &&
+        typeof f.severity === "string" &&
+        ["normal", "mild", "moderate", "severe"].includes(f.severity as string) &&
+        typeof f.description === "string"
+    );
+
+    return { findings: validFindings };
   } catch {
     return { findings: [] };
   }

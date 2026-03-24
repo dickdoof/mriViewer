@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/libs/supabase/server";
 import { uploadFile, getPresignedUrl } from "@/libs/minio";
+import config from "@/config";
 import ReactPDF from "@react-pdf/renderer";
 import {
   Document,
@@ -125,7 +126,7 @@ For all left-to-right languages, return plain text only — no JSON, no markdown
 }`;
 
   const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: config.ai?.model || "claude-sonnet-4-20250514",
     max_tokens: 2048,
     system: systemPrompt,
     messages: [{ role: "user", content: userPrompt }],

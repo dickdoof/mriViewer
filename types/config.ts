@@ -35,4 +35,7 @@ export interface ConfigProps {
     loginUrl: string;
     callbackUrl: string;
   };
+  ai?: {
+    model: string;
+  };
 }
